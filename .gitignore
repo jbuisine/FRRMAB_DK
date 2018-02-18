@@ -30,3 +30,18 @@
 *.exe
 *.out
 *.app
+
+
+# JetBrains
+.idea/
+
+# R files
+.RData
+.Rhistory
+
+# CMake
+build/
+cmake-build-debug/
+
+# Mac OS
+.DS_Store

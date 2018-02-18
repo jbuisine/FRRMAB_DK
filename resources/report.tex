@@ -1,0 +1,326 @@
+\documentclass{article}
+\newcommand\tab[1][0.6cm]{\hspace*{#1}}
+\usepackage[linesnumbered,algoruled,boxed,lined]{algorithm2e}
+\usepackage[utf8]{inputenc}
+\usepackage{fancyhdr}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{dirtytalk}
+\usepackage[table]{xcolor}%
+
+% Display format page configuration
+\addtolength{\oddsidemargin}{-.875in}
+\addtolength{\evensidemargin}{-.875in}
+\addtolength{\textwidth}{1.75in}
+\addtolength{\topmargin}{-.875in}
+\addtolength{\textheight}{1.75in}
+
+\newlength\mylen
+\newcommand\myinput[1]{%
+  \settowidth\mylen{\KwIn{}}%
+  \setlength\hangindent{\mylen}%
+  \hspace*{\mylen}#1\\}
+
+%Setting color syntax language%
+\usepackage{listings}
+\usepackage{color}
+ 
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{keywordcolor}{rgb}{1,0.20,0.1}
+
+
+ 
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{keywordcolor},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+ 
+\lstset{style=mystyle}
+
+% Settings head and footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{June 2017}
+\lhead{FRRMAB using Directions Knowledge}
+\cfoot{\thepage}
+
+% Title configuration
+\title{\textbf{Adaptive Operators Selection into MOEA/D using directions knowledge}}
+\author{F. Teytaud, S. Verel, J. Buisine}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\vspace{30mm}
+
+\tableofcontents
+\newpage
+
+\section{Abstract}
+
+This paper presents new approach of \textit{Adaptive Operator Selection} (AOS) into \textit{Multiobjective Evolutionary Algorithm based on Decomposition} (MOEA/D). MOEA/D decomposes a multiobjective optimization problem into a number of scalar optimization subproblems and optimizes them simultaneously. AOS' aim is to select the best operator at iteration $i$ based on their recent performances within an optimization process. 
+
+\vspace{3mm}
+
+The AOS algorithm structure is mainly based on the \textit{Fitness-Rate-Rank-based Multi-Armed Bandit} (FRRMAB) introduced in \citep{DBLP:journals/tec/LiFKZ14}. FRRMAB uses Upper Confidence Bound algorithm to choose the best operator at iteration $i$. In our article, we introduced the \textit{Fitness-Rate-Rank-based Multi-Armed Bandit using Directions Knowledge} (FRRMABDK) algorithm. Its aim is to take care of closest subproblems operators rewards information to select the best operator. 
+
+
+\newpage
+
+\section{Introduction}
+
+MOEA/D decomposes a multiobjective optimization problem into a number of scalar optimization subproblems and optimizes them simultaneously during optimization process. 
+
+\newpage
+\section{FRRMAB using Directions Knowledge}
+
+
+\subsection{Updates of Fitness Rate Ranks}
+
+
+\begin{algorithm}[H]
+\SetAlgoLined
+
+Initialize each reward $Reward_i$ = 0; \\
+Initialize each $nb_{op}$ = 0;
+
+\For{$i := 0$ to SlidingWindow[$subProblem$].$length$}{
+        $op$ = SlidingWindow[$subProblem$].$getIndexOp(i)$; \\
+        $FIR$ = SlidingWindow[$subProblem$].$getFIR(i)$; \\ 
+        $Reward_{op}$ = $Reward_{op} + FIR$; \\ 
+        $nb_{op}++$;
+}
+
+\For{$n$ : $neighbors$}{
+    
+    $dist$ = $|subProblem - n |$;
+
+    \For{$j := 0$ to SlidingWindow[$n$].$length$}{
+        $op$ = SlidingWindow[$n$].$getIndexOp(j)$; \\
+        $FIR_n$ = SlidingWindow[$n$].$getFIR(j)$; \\ 
+        $Reward_{op}$ = $Reward_{op} + (FIR_n * \alpha^{dist})$; \\ 
+    }
+}
+
+Rank $Reward_i$ in descending order and set $Rank_i$ to be the rank value of operator $i$; \\
+
+\For{$op := 1$ to $K$}{
+    $Decay_{op} = D^{Rank_{op}} * Reward_{op}$;
+}
+
+$DecaySum = \sum_{op=1}^{K} Decay_{op}$;
+
+\For{$op := 1$ to $K$}{
+    $FRR_{op} = Decay_{op} / DecaySum$;
+}
+
+\caption{updateCreditAssignmentSubProblem($subProblem$)}
+\end{algorithm}
+
+\subsection{UCB algorithm, operator choice}
+
+\vspace{3mm}
+
+\begin{algorithm}[H]
+\SetAlgoLined
+
+$FRR$ = $FRRs(subProblem)$; \\
+
+\If{There are operators that have not been selected}{
+    $op_t$ = one op randomly choose from operators pool not already chosen;
+}\Else{
+    $op_t$ = $argmax_{i=\{i...K\}} \left( FFR_{i,t} + C * \sqrt{\frac{2 * ln\sum_{j=1}^{K} nb_{j,t}}{nb_{i,t}}} \right)$
+}
+\caption{FRRMABDK($subProblem$)}
+\end{algorithm}
+
+
+\subsection{MOEA/D using FRRMABDK}
+
+\tab The Multiobjective Evolutionary Algorithm Based on Decomposition \citep{DBLP:journals/tec/ZhangL07} is a scalarizing approach with population. Scalarizing approaches consist in transforming the original problem into a single-objective one by means of an aggregation of the objective function values. There is two typical scalarizing functions used into this paper. 
+
+\begin{itemize}
+    \item
+        Weighted-sum scalarizing function \citep{DBLP:conf/emo/LiefoogheDVAT17} defined below.
+        
+        $$g_\lambda(x) = \lambda_1.f_1(x) + \lambda_2.f_2(x)$$
+        where $x \in S_n$ is a candidate solution, and $\lambda = (\lambda_1, \lambda_2)$ is a weighting coefficient vector. 
+    \item 
+        Tchebycheff scalarizing function defined as follows.
+        
+        $$g_{\lambda} (x) = \min \bigg\{ \lambda_1 * |f_1(x) - r_1|, \lambda_2 * |f_2(x) - r_2| \bigg\} $$
+        
+        where $r$ is a reference point in the objective space, as example $r(0,0)$. 
+\end{itemize}
+
+\vspace{3mm}
+
+\begin{algorithm}[H]
+\SetAlgoLined
+
+Initialize the population $\{x^1, ... , x^N\}$ and $z*$; \\
+Initialize $\alpha$ [0, 1]; 
+
+\For{$i := 0$ to $N$}{
+
+    $B(i) = \{i_1, ... , i_T\}$ where $\lambda^{i_1}, ... , \lambda^{i_T}$ are the $T$ closest weight vectors to direction $\lambda^i$;
+    
+    Initialize sliding window of size $W$ for direction $i$. 
+}
+
+\Repeat{\textit{Stopping criterion is not satisfied}}
+{
+    \For{$i := 0$ to $N$}{
+        
+        
+        $op$ = $FRRMABDK(i)$; \\
+        
+        $x^i$ = $pop[i]$; \\ 
+        generate $y$, a mutant solution from $x^i$ using $op$ operator; \\
+        $repair(i)$; 
+        
+        $neighbors$ = $getNeighbors(i)$; \\
+        
+        $FIR_{op} = 0$; 
+        
+        \For{$n$ : $neighbors$}{
+            
+            $\nabla = \frac{g\left(x^n | \lambda^n, z* \right) - g\left( y | \lambda^n, z* \right)}{g\left(x^n | \lambda^n, z* \right)} $; 
+            
+            \If{$\nabla > 0$}{
+                Replace $x^n$ with $y$; \\
+                $FIR_{op} = FIR_{op} + \nabla$; 
+            }
+        }
+        
+        $updateSlidingWindow(i, op, FIR_{op})$; \\
+        $updateCreditAssignmentSubProblem(i)$; 
+    }
+}
+\caption{MOEA/D-FRRMABDK}
+\end{algorithm}
+
+\newpage
+\section{Test suites}
+\subsection{QAP problem instance}
+
+\subsection{Operators pool}
+List of these operators :
+\begin{enumerate}
+    \item Mutation operator which randomly choose $x_1$, an index of the QAP solution and permute it with the next cell. 
+    \item Mutation operator which randomly permutes $x_1$ and $x_2$, two different indexes of the solution.
+    \item Mutation operator which randomly permute two times $x_1$ and $x_2$ which are two different indexes of the solution.
+\end{enumerate}
+
+
+\subsection{Results}
+
+\tab Same global parameters are used into these test results :
+
+\begin{center}
+    \begin{tabular}{|l|c|r|}
+      \hline
+       seed & 10 \\
+      \hline
+       mu & 100 \\
+      \hline
+       T & 20 \\
+      \hline
+       W & 15 \\
+      \hline
+       C & $\sqrt{2}$ \\
+      \hline
+       D & 0.5 \\
+      \hline
+       evaluation & 1000000 \\
+      \hline
+    \end{tabular}
+\end{center}
+
+Note that, the Weighted-sum scalarizing function is used for each test suites.
+
+\vspace{3mm}
+
+\tab We compare the \textit{\textbf{hypervolume}} metric obtained by the approximation of pareto front from FRRMAB and FRRMABDK. Operators list is initialized using different order combinations. 
+
+\vspace{3mm}
+First column defines operators combination, the second FRRMAB results and the others, FRRMABDK results with different \textbf{$\alpha$} affinity parameter value.
+  
+\begin{center}
+    \begin{tabular}{|l|c|r|r|r|r|r|}
+      \hline
+      Operators & FRRMAB & ...DK, $\alpha = 0.5$ & ...DK, $\alpha = 0.6$ & ...DK, $\alpha = 0.7$ & ...DK, $\alpha = 0.8$ & ...DK, $\alpha = 0.9$\\
+      \hline
+      (1, 2, 3) & 8.96529e+11 
+                & \cellcolor{green!20}8.9417e+11 
+                & \cellcolor{green!50}8.68122e+11 
+                & \cellcolor{green!100}8.53514e+11 
+                & \cellcolor{green!20}8.83109e+11 
+                & \cellcolor{green!50}8.66716e+11\\
+                
+      (1, 3, 2) & 8.69997e+11 
+                & \cellcolor{green!70}8.33684e+11 
+                & \cellcolor{red!40}8.93059e+11 
+                & \cellcolor{red!20}8.83973e+11 
+                & \cellcolor{red!50}9.14678e+11 
+                & \cellcolor{red!50}9.17512e+11\\
+                
+      (2, 1, 3) & 8.47605e+11 
+                & \cellcolor{red!20}8.62056e+11 
+                & \cellcolor{green!80}7.80205e+11 
+                & \cellcolor{red!40}8.89187e+11 
+                & \cellcolor{red!30}8.5989e+11 
+                & \cellcolor{red!35}8.63313e+11\\
+                
+      (2, 3, 1) & 8.47605e+11 
+                & \cellcolor{green!30}8.15611e+11 
+                & \cellcolor{red!10}8.5119e+11 
+                & \cellcolor{red!50}8.90212e+11 
+                & \cellcolor{red!70}9.15997e+11 
+                & \cellcolor{red!70}9.10662e+11\\
+                
+      (3, 1, 2) & 8.66909e+11 
+                & \cellcolor{red!20}8.90197e+11 
+                & \cellcolor{red!20}8.9376e+11 
+                & \cellcolor{green!50}8.31216e+11 
+                & \cellcolor{red!20}8.9186e+11 
+                & \cellcolor{green!80}7.90285e+11\\
+                
+      (3, 2, 1) & 8.88218e+11 
+                & \cellcolor{green!50}8.36726e+11 
+                & \cellcolor{green!50}8.38885e+11 
+                & \cellcolor{red!15}8.94274e+11 
+                & \cellcolor{green!10}8.79118e+11 
+                & \cellcolor{red!25}9.07816e+11\\
+      \hline
+    \end{tabular}
+\end{center}
+
+\newpage
+\section{Conclusion}
+
+\tab Others operators... change MOEA/D $y$ solution generation...
+
+
+\bibliographystyle{abbrv}
+\bibliography{references}
+\end{document}
