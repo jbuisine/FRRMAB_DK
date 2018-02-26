@@ -40,7 +40,7 @@ using namespace std;
 int main(int argc, char ** argv) {
 
     // getting context files
-    std::string _dataFileName = "./../../application/resources/qap/instanceUni_Rl_100.txt";
+    std::string _dataFileName = "./../resources/qap/instanceUni_Rl_100.txt";
 
     // Get all params data
     //std::string _dataFileName = argv[1];
@@ -103,7 +103,7 @@ int main(int argc, char ** argv) {
     cout << "----Starting FRRMAB_NR----" << endl;
     FRRMAB_DK algo(eval, sp, true, init, mutations, repair, mu, C, D, affinity, nbEval);
 
-    char* fileout = "./../../application/resources/qap/stats/output.txt"; //argv[12]
+    char* fileout = "./../resources/qap/stats/output.txt"; //argv[12]
 
     algo.run(fileout);
 
@@ -111,7 +111,7 @@ int main(int argc, char ** argv) {
     std::vector<moSolution> pf = algo.pfPop;
 
     ofstream file;
-    file.open ("./../../application/resources/qap/stats/front_pa_frrmab_dk.txt", ios::out);
+    file.open ("./../resources/qap/stats/front_pa_frrmab_dk.txt", ios::out);
     for(unsigned i = 0; i < pf.size(); i++){
         file << pf[i].toString() << endl;
     }
