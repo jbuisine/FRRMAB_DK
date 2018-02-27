@@ -24,10 +24,10 @@ And then :
 cmake 
 ```
 
-## MOEA/D
+# MOEA/D
 
 For MOEA/D algorithm, QAP instances are generated following this available [generator](http://www.cs.bham.ac.uk/~jdk/mQAP/). 
 
-## Licence
+# Licence
 
 [CeCILL](http://www.cecill.info/index.en.html)
