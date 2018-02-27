@@ -264,17 +264,17 @@ private:
         std::generate(std::begin(opRanks), std::end(opRanks), [&]{ return n++; });
 
         // getting rank indexes sorted
-        std::sort(opRanks.begin(), opRanks.end(),
-                    [&](int i1, int i2) { return rewards[i1] < rewards[i2]; } );
+        std::sort(opRanks.begin(), opRanks.end(), [&](int i1, int i2) { return rewards[i1] > rewards[i2]; } );
 
-        std::reverse(opRanks.begin(), opRanks.end());
 
         // Compute decay values of each op and decaySum
         std::vector<double> decays(mutations.size());
         double decaySum = 0.;
 
-        for (int op = 0; op < mutations.size(); op++) {
-            decays.at(op) = pow(D, (opRanks.at(op)+1)) * rewards.at(op);
+        for (unsigned op = 0; op < mutations.size(); op++) {
+
+            unsigned rank = std::find(opRanks.begin(), opRanks.end(), op) - opRanks.begin();
+            decays.at(op) = pow(D, (rank + 1)) * rewards.at(op);
             decaySum += decays.at(op);
         }
 

@@ -62,7 +62,7 @@ int main(int argc, char ** argv) {
     unsigned W = 15;
     double C = sqrt(2.);
     double D = 0.5;
-    double affinity = 0.9;
+    double affinity = 0.6;
     unsigned nbEval = 1000000;
 
     // init all context info
@@ -84,9 +84,9 @@ int main(int argc, char ** argv) {
     DoubleStandardRndMutation mutation3(problem_size);
     TripleStandardRndMutation mutation4(problem_size);
 
-    mutations.push_back(&mutation3);
-    mutations.push_back(&mutation2);
     mutations.push_back(&mutation1);
+    mutations.push_back(&mutation2);
+    mutations.push_back(&mutation3);
     //mutations.push_back(&mutation4);
 
     // End set Operators
