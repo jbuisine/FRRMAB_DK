@@ -40,7 +40,7 @@ using namespace std;
 int main(int argc, char ** argv) {
 
     // getting context files
-    std::string _dataFileName = "./../../application/resources/qap/instanceUni_Rl_100.txt";
+    std::string _dataFileName = "./../resources/qap/instanceUni_Rl_100.txt";
 
     // Get all params data
     //std::string _dataFileName = argv[1];
@@ -83,9 +83,9 @@ int main(int argc, char ** argv) {
     DoubleStandardRndMutation mutation3(problem_size);
     TripleStandardRndMutation mutation4(problem_size);
 
-    mutations.push_back(&mutation3);
-    mutations.push_back(&mutation2);
     mutations.push_back(&mutation1);
+    mutations.push_back(&mutation2);
+    mutations.push_back(&mutation3);
     //mutations.push_back(&mutation4);
     // End set Operators
 
@@ -101,7 +101,7 @@ int main(int argc, char ** argv) {
     cout << "----Starting FRRMAB----" << endl;
     FRRMAB algo(eval, sp, true, init, mutations, repair, mu, C, D, nbEval);
 
-    char* fileout = "./../../application/resources/qap/stats/output.txt"; //argv[12]
+    char* fileout = "./../resources/qap/stats/output.txt"; //argv[12]
 
     algo.run(fileout);
 
@@ -110,7 +110,7 @@ int main(int argc, char ** argv) {
     std::vector<moSolution> pf = algo.pfPop;
 
     ofstream file;
-    file.open ("./../../application/resources/qap/stats/front_pa.txt", ios::out);
+    file.open ("./../resources/qap/stats/front_pa.txt", ios::out);
     for(unsigned i = 0; i < pf.size(); i++){
         file << pf[i].toString() << endl;
     }
