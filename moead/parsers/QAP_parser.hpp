@@ -2,8 +2,8 @@
 // Created by jbuisine on 15/11/17.
 //
 
-#ifndef PHOTOALBUMPARSER_H
-#define PHOTOALBUMPARSER_H
+#ifndef QAPPARSER_H
+#define QAPPARSER_H
 
 #include <stdlib.h>
 #include <fstream>
@@ -14,7 +14,7 @@
  * Class to handle data of a QAP instance
  */
 
-class QAPUniParser
+class QAPParser
 {
 public:
 
@@ -23,7 +23,7 @@ public:
      *
      * @param _dataFile the name of the QAP data file
      */
-    QAPUniParser(const std::string _dataFile)
+    QAPParser(const std::string _dataFile)
     {
         init(_dataFile);
     };
@@ -160,4 +160,4 @@ private:
     }
 };
 
-#endif //PHOTOALBUMPARSER_H
+#endif //QAPPARSER_H

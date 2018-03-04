@@ -7,11 +7,9 @@
 
 #include <iostream>
 #include <fstream>
-//#include "mpicxx.h"
-//#include "mpi.h"
 
-#include "solutions/moQAPSolution.h"
-#include "evals/moQAPEval.h"
+#include "solutions/moUBQPSolution.h"
+#include "evals/moUBQPEval.h"
 #include "moead/mutation.h"
 #include "moead/subProblems.h"
 #include "moead/moFRRMAB.h"
@@ -19,9 +17,11 @@
 #include "moead/paretoFront.h"
 #include "moead/init.h"
 
+
+//#include "mpicxx.h"
+//#include "mpi.h"
+
 using namespace std;
-
-
 /***
  * Main
  *
@@ -40,7 +40,7 @@ using namespace std;
 int main(int argc, char ** argv) {
 
     // getting context files
-    std::string _dataFileName = "./../resources/qap/instanceUni_Rl_100.txt";
+    std::string _dataFileName = "./../resources/ubqp/ubqpInstance.txt";
 
     // Get all params data
     //std::string _dataFileName = argv[1];
@@ -62,15 +62,15 @@ int main(int argc, char ** argv) {
     unsigned W = 15;
     double C = sqrt(2.);
     double D = 0.5;
-    unsigned nbEval = 1000000;
+    unsigned nbEval = 20000;
 
     // init all context info
-    QAPUniParser fparser(_dataFileName);
+    UBQPParser fparser(_dataFileName);
 
     int problem_size = fparser.getN();
 
     // Evaluation function
-    QAPEval eval(fparser);
+    UBQPEval eval(fparser);
 
     // random seed
     srand(seed);
@@ -87,9 +87,10 @@ int main(int argc, char ** argv) {
     mutations.push_back(&mutation2);
     mutations.push_back(&mutation3);
     //mutations.push_back(&mutation4);
+
     // End set Operators
 
-    InitQAP init;
+    InitUBQP init;
 
     // init decomposition with WeightedSum mono objective function
     WeightedSumSubProblems sp(mu, 0.0, 0.0, T, W);
@@ -98,19 +99,18 @@ int main(int argc, char ** argv) {
 
     sp.print();
 
-    cout << "----Starting FRRMAB with QAP integer instances----" << endl;
-    FRRMAB algo(eval, sp, true, init, mutations, repair, mu, C, D, nbEval);
+    cout << "----Starting FRRMAB with UBQP instance----" << endl;
+    FRRMAB algo(eval, sp, false, init, mutations, repair, mu, C, D, nbEval);
 
     char* fileout = "./../resources/qap/stats/output.txt"; //argv[12]
 
     algo.run(fileout);
 
-
-    // getting pareto front from algo
+    // getting pareto front from population
     std::vector<moSolution> pf = algo.pfPop;
 
     ofstream file;
-    file.open ("./../resources/qap/stats/front_pa.txt", ios::out);
+    file.open ("./../resources/qap/stats/front_pa_frrmab_dk.txt", ios::out);
     for(unsigned i = 0; i < pf.size(); i++){
         file << pf[i].toString() << endl;
     }
@@ -119,7 +119,7 @@ int main(int argc, char ** argv) {
     // Stats hyper volume
     HyperVolume hv;
 
-    std::cout << "End of FRRMAB (n. eval = " << nbEval << ", duration = " << algo.duration << ")" << std::endl;
+    std::cout << "End of FRRMAB_NR (n. eval = " << nbEval << ", duration = " << algo.duration << ")" << std::endl;
     std::cout << "HV : " << hv(pf) << std::endl;
   
     return 0;

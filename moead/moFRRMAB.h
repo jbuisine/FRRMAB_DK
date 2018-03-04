@@ -6,7 +6,7 @@
 #include <map>
 #include <vector>
 #include <fstream>
-#include "moSolution.h"
+#include "solutions/moQAPSolution.h"
 #include "subProblems.h"
 #include "init.h"
 #include "repair.h"
@@ -20,7 +20,7 @@
  **/
 class FRRMAB : public MultiObjectiveAlgo {
 public:
-    FRRMAB(moEval &_eval, SubProblems &_subproblems, bool _pbType, InitQAP &_init, std::vector<Mutation*> &_mutations, Repair &_repair,
+    FRRMAB(moEval &_eval, SubProblems &_subproblems, bool _pbType, Init &_init, std::vector<Mutation*> &_mutations, Repair &_repair,
            unsigned _mu, double _C, double _D, unsigned _maxEval)
             : evaluation(_eval), subProblems(_subproblems), pbType(_pbType), initialization(_init), mutations(_mutations), repair(_repair), mu(_mu),
               C(_C), D(_D), maxEval(_maxEval)  {
@@ -160,7 +160,7 @@ public:
 protected:
     moEval &evaluation;
     SubProblems &subProblems;
-    InitQAP &initialization;
+    Init &initialization;
     std::vector<Mutation*> &mutations;
     Repair &repair;
     unsigned mu;

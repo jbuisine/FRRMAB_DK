@@ -3,6 +3,6 @@ project (FRRMAB_DK)
 
 include_directories(moead)
 
-add_executable(moQAP FRRMAB-DK-qap.cpp)
+add_executable(moQAP FRRMAB-DK-ubqp.cpp)
 
 

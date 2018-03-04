@@ -1,7 +1,6 @@
 #ifndef _moEval_h
 #define _moEval_h
 
-#include "moSolution.h"
 #include <fstream>
 #include <math.h>
 

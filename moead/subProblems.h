@@ -1,7 +1,7 @@
 #ifndef __subProblems__h
 #define __subProblems__h
 
-#include "moSolution.h"
+#include "solutions/moSolution.h"
 #include "scalarFunc.h"
 #include <math.h>
 

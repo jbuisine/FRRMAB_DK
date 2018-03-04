@@ -4,7 +4,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <algorithm>
-#include "moSolution.h"
+#include "solutions/moQAPSolution.h"
 
 
 class ScalarFunc {

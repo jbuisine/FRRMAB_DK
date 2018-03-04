@@ -8,8 +8,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "moead/moSolution.h"
-#include "moead/moQAPEval.h"
+#include "solutions/moQAPSolution.h"
+#include "evals/moQAPEval.h"
 #include "moead/mutation.h"
 #include "moead/subProblems.h"
 #include "moead/moFRRMAB_DK.h"
@@ -66,7 +66,7 @@ int main(int argc, char ** argv) {
     unsigned nbEval = 1000000;
 
     // init all context info
-    QAPUniParser fparser(_dataFileName);
+    QAPParser fparser(_dataFileName);
 
     int problem_size = fparser.getN();
 
@@ -100,7 +100,7 @@ int main(int argc, char ** argv) {
 
     sp.print();
 
-    cout << "----Starting FRRMAB_NR----" << endl;
+    cout << "----Starting FRRMAB_DK with QAP Integer instance----" << endl;
     FRRMAB_DK algo(eval, sp, true, init, mutations, repair, mu, C, D, affinity, nbEval);
 
     char* fileout = "./../resources/qap/stats/output.txt"; //argv[12]

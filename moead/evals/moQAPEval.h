@@ -6,13 +6,13 @@
 #define QAP_EVAL_H
 
 #include "moEval.h"
-#include "QAPUniParser.hpp"
+#include "parsers/QAP_parser.hpp"
 
 class QAPEval : public moEval {
 public:
 
     // constructor
-    QAPEval(QAPUniParser _parser) : moEval() {
+    QAPEval(QAPParser _parser) : moEval() {
 
         // getting data
         A = _parser.getA();

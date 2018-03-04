@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "Solution.h"
+#include "solutions/Solution.h"
 
 using namespace std;
 
@@ -17,13 +17,13 @@ using namespace std;
 */
 class moSolution : public Solution {
 public:
-  moSolution() : Solution() {}
+    moSolution() : Solution() {}
 
-  moSolution(const moSolution & _s) : Solution(_s) {
+    moSolution(const moSolution & _s) : Solution(_s) {
     objvec = _s.objvec;
   }
 
-  moSolution& operator=(moSolution & _s) {
+    moSolution& operator=(moSolution & _s) {
     objvec = _s.objvec;
 
     this->resize(_s.size());

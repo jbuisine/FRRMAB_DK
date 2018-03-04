@@ -5,7 +5,7 @@
 #ifndef PHOTOALBUM_HYPERVOLUME_H
 #define PHOTOALBUM_HYPERVOLUME_H
 
-#include "moSolution.h"
+#include "solutions/moQAPSolution.h"
 
 struct moObjCmp{
 

@@ -9,14 +9,24 @@
 /*
  * Standard Mutation operator with fixed mutation rates
  */
-class InitQAP {
+class Init {
 public:
     /**
      * Constructor
      **/
-    InitQAP() {}
+    Init() {}
 
-    void operator()(Solution & _solution) {
+    virtual void operator()(Solution & _solution) = 0;
+};
+
+class InitQAP : public Init{
+public:
+    /**
+     * Constructor
+     **/
+    InitQAP() : Init() {}
+
+    virtual void operator()(Solution & _solution) {
 
         _solution.resize(_solution.size());
 
@@ -27,5 +37,26 @@ public:
         std::random_shuffle(&_solution[0], &_solution[_solution.size()-1]);
     }
 };
+
+class InitUBQP : public Init{
+public:
+    /**
+     * Constructor
+     **/
+    InitUBQP() : Init() {}
+
+    virtual void operator()(Solution & _solution) {
+
+        _solution.resize(_solution.size());
+
+        // bool sol..
+        for(int i = 0; i < _solution.size(); i++){
+            _solution[i] = rand() % 2;
+        }
+
+        std::random_shuffle(&_solution[0], &_solution[_solution.size()-1]);
+    }
+};
+
 
 #endif //QAP_INIT_H
