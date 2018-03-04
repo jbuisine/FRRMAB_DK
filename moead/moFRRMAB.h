@@ -215,7 +215,12 @@ private:
      */
     double computeFIR(moSolution &_solution, double _mutantFitness, int _n) {
         double solFitness = subProblems.scalarfunc(_n, _solution);
-        return (solFitness - _mutantFitness) / solFitness;
+
+        // if minimize
+        if(pbType)
+            return (solFitness - _mutantFitness) / solFitness;
+        else
+            return (_mutantFitness - solFitness) / solFitness;
     }
 
     /**

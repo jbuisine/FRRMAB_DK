@@ -62,7 +62,7 @@ int main(int argc, char ** argv) {
     unsigned W = 15;
     double C = sqrt(2.);
     double D = 0.5;
-    unsigned nbEval = 20000;
+    unsigned nbEval = 1000;
 
     // init all context info
     UBQPParser fparser(_dataFileName);

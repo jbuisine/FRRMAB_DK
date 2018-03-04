@@ -62,8 +62,8 @@ int main(int argc, char ** argv) {
     unsigned W = 15;
     double C = sqrt(2.);
     double D = 0.5;
-    double affinity = 0.6;
-    unsigned nbEval = 1000000;
+    double affinity = 0.2;
+    unsigned nbEval = 1000;
 
     // init all context info
     UBQPParser fparser(_dataFileName);
@@ -91,7 +91,7 @@ int main(int argc, char ** argv) {
 
     // End set Operators
 
-    InitQAP init;
+    InitUBQP init;
 
     // init decomposition with WeightedSum mono objective function
     WeightedSumSubProblems sp(mu, 0.0, 0.0, T, W);
@@ -100,8 +100,8 @@ int main(int argc, char ** argv) {
 
     sp.print();
 
-    cout << "----Starting FRRMAB_NR----" << endl;
-    FRRMAB_DK algo(eval, sp, true, init, mutations, repair, mu, C, D, affinity, nbEval);
+    cout << "----Starting FRRMAB_DK with UBQP instance----" << endl;
+    FRRMAB_DK algo(eval, sp, false, init, mutations, repair, mu, C, D, affinity, nbEval);
 
     char* fileout = "./../resources/qap/stats/output.txt"; //argv[12]
 

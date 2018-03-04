@@ -62,10 +62,10 @@ int main(int argc, char ** argv) {
     unsigned W = 15;
     double C = sqrt(2.);
     double D = 0.5;
-    unsigned nbEval = 1000000;
+    unsigned nbEval = 10000;
 
     // init all context info
-    QAPUniParser fparser(_dataFileName);
+    QAPParser fparser(_dataFileName);
 
     int problem_size = fparser.getN();
 
