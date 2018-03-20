@@ -8,9 +8,9 @@
 #include <iostream>
 #include <fstream>
 
-#include "solutions/moUBQPSolution.h"
 #include "evals/moUBQPEval.h"
-#include "moead/mutation.h"
+#include "operators/mutation.h"
+#include "operators/crossover.h"
 #include "moead/subProblems.h"
 #include "moead/moFRRMAB_DK.h"
 #include "moead/hyperVolume.h"
@@ -40,7 +40,7 @@ using namespace std;
 int main(int argc, char ** argv) {
 
     // getting context files
-    std::string _dataFileName = "./../resources/ubqp/ubqpInstance.txt";
+    std::string _dataFileName = "./../resources/ubqp/ubqpInstance500-v2.txt";
 
     // Get all params data
     //std::string _dataFileName = argv[1];
@@ -62,8 +62,8 @@ int main(int argc, char ** argv) {
     unsigned W = 15;
     double C = sqrt(2.);
     double D = 0.5;
-    double affinity = 0.2;
-    unsigned nbEval = 1000;
+    double affinity = 0.1;
+    unsigned nbEval = 10000;
 
     // init all context info
     UBQPParser fparser(_dataFileName);
@@ -77,17 +77,19 @@ int main(int argc, char ** argv) {
     srand(seed);
 
     // Set Operators
-    std::vector<Mutation*> mutations;
+    std::vector<Operator*> operators;
 
-    StandardMutation mutation1(problem_size);
-    StandardRndMutation mutation2(problem_size);
-    DoubleStandardRndMutation mutation3(problem_size);
-    TripleStandardRndMutation mutation4(problem_size);
+    StandardRndMutation mutation1(problem_size);
+    StandardDoubleRndMutation mutation2(problem_size);
+    StandardTripleRndMutation mutation3(problem_size);
+    StandardCrossover crossover1(problem_size);
+    StandardRndCrossover crossover2(problem_size);
 
-    mutations.push_back(&mutation1);
-    mutations.push_back(&mutation2);
-    mutations.push_back(&mutation3);
-    //mutations.push_back(&mutation4);
+    operators.push_back(&mutation1);
+    operators.push_back(&mutation2);
+    operators.push_back(&mutation3);
+    operators.push_back(&crossover1);
+    operators.push_back(&crossover2);
 
     // End set Operators
 
@@ -101,9 +103,9 @@ int main(int argc, char ** argv) {
     sp.print();
 
     cout << "----Starting FRRMAB_DK with UBQP instance----" << endl;
-    FRRMAB_DK algo(eval, sp, false, init, mutations, repair, mu, C, D, affinity, nbEval);
+    FRRMAB_DK algo(eval, sp, false, init, operators, repair, mu, C, D, affinity, nbEval);
 
-    char* fileout = "./../resources/qap/stats/output.txt"; //argv[12]
+    char* fileout = "./../resources/ubqp/stats/output.txt"; //argv[12]
 
     algo.run(fileout);
 
@@ -113,6 +115,7 @@ int main(int argc, char ** argv) {
     ofstream file;
     file.open ("./../resources/qap/stats/front_pa_frrmab_dk.txt", ios::out);
     for(unsigned i = 0; i < pf.size(); i++){
+        pf[i].print();
         file << pf[i].toString() << endl;
     }
     file.close();
@@ -120,7 +123,7 @@ int main(int argc, char ** argv) {
     // Stats hyper volume
     HyperVolume hv;
 
-    std::cout << "End of FRRMAB_NR (n. eval = " << nbEval << ", duration = " << algo.duration << ")" << std::endl;
+    std::cout << "End of FRRMAB_DK (n. eval = " << nbEval << ", duration = " << algo.duration << ")" << std::endl;
     std::cout << "HV : " << hv(pf) << std::endl;
   
     return 0;

@@ -6,13 +6,13 @@
 #include <map>
 #include <vector>
 #include <fstream>
-#include "solutions/moQAPSolution.h"
 #include "subProblems.h"
 #include "init.h"
 #include "repair.h"
-#include "mutation.h"
+#include "operators/mutation.h"
 #include "moAlgo.h"
 #include "paretoFront.h"
+#include "hyperVolume.h"
 //#include "checkSol.h"
 
 /**
@@ -20,12 +20,12 @@
  **/
 class FRRMAB : public MultiObjectiveAlgo {
 public:
-    FRRMAB(moEval &_eval, SubProblems &_subproblems, bool _pbType, Init &_init, std::vector<Mutation*> &_mutations, Repair &_repair,
+    FRRMAB(moEval &_eval, SubProblems &_subproblems, bool _pbType, Init &_init, std::vector<Operator*> &_operators, Repair &_repair,
            unsigned _mu, double _C, double _D, unsigned _maxEval)
-            : evaluation(_eval), subProblems(_subproblems), pbType(_pbType), initialization(_init), mutations(_mutations), repair(_repair), mu(_mu),
+            : evaluation(_eval), subProblems(_subproblems), pbType(_pbType), initialization(_init), operators(_operators), repair(_repair), mu(_mu),
               C(_C), D(_D), maxEval(_maxEval)  {
 
-        int nbOperators = mutations.size();
+        unsigned nbOperators = operators.size();
 
         // Initialization
         // nop : number of op present into each slidingWindow
@@ -93,15 +93,26 @@ public:
 
             // get best next op for sub problem
             int selectedOpIndex = getBestOp(i);
-            Mutation& mutation = *mutations.at(selectedOpIndex);
+            Operator& op = *operators.at(selectedOpIndex);
 
             mutant = pop[i];
             mutant.best(0);
             mutant.op(selectedOpIndex);
 
+            // TODO use of repair function (local search)
             //while (!sHM.isNewSol(mutant)) {
-                mutation(mutant);
-                //repair(mutant, i, true);
+
+                // get mutant solution from operator choose
+                if(op.getKind() == OpKind::CROSSOVER){
+
+                    mutant = op(mutant, pop[rand() % pop.size()]);
+
+                }else if(op.getKind() == OpKind::MUTATION){
+
+                    mutant = op(mutant);
+                }
+
+                //mutant = repair(mutant, i, pbType);
             //}
 
             //sHM.insertSol(mutant);
@@ -150,7 +161,12 @@ public:
 
             // next direction
             i++;
-            if (i >= mu) i = 0;
+            if (i >= mu) {
+                i = 0;
+                HyperVolume hv;
+                std::cout << "POP : " << hv(pop) << std::endl;
+                std::cout << "PF : " << hv(pfPop) << std::endl;
+            };
         }
 
         // set duration time
@@ -161,7 +177,7 @@ protected:
     moEval &evaluation;
     SubProblems &subProblems;
     Init &initialization;
-    std::vector<Mutation*> &mutations;
+    std::vector<Operator*> &operators;
     Repair &repair;
     unsigned mu;
 
@@ -229,7 +245,7 @@ private:
     void updateCreditAssignmentSubProblem() {
 
         // Init vector rewards and op values
-        std::vector<double> rewards(mutations.size());
+        std::vector<double> rewards(operators.size());
 
         for (int i = 0; i < rewards.size(); i++) {
             rewards.at(i) = 0.;
@@ -248,7 +264,7 @@ private:
         }
 
         // getting rank of each reward of operator
-        std::vector<unsigned > opRanks(mutations.size());
+        std::vector<unsigned > opRanks(operators.size());
 
         // set default indexes
         std::size_t n(0);
@@ -258,10 +274,10 @@ private:
         std::sort(opRanks.begin(), opRanks.end(), [&](int i1, int i2) { return rewards[i1] > rewards[i2]; } );
 
         // Compute decay values of each op and decaySum
-        std::vector<double> decays(mutations.size());
+        std::vector<double> decays(operators.size());
         double decaySum = 0.;
 
-        for (unsigned op = 0; op < mutations.size(); op++) {
+        for (unsigned op = 0; op < operators.size(); op++) {
 
             unsigned rank = std::find(opRanks.begin(), opRanks.end(), op) - opRanks.begin();
             decays.at(op) = pow(D, (rank + 1)) * rewards.at(op);
@@ -269,7 +285,7 @@ private:
         }
 
         // Compute new FRRs value
-        for (unsigned op = 0; op < mutations.size(); op++) {
+        for (unsigned op = 0; op < operators.size(); op++) {
             if(decaySum != 0)
                 FRRs.at(op) = decays.at(op) / decaySum;
             else

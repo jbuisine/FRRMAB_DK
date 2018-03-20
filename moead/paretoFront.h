@@ -5,7 +5,6 @@
 #ifndef PHOTOALBUM_PARETOFRONT_H
 #define PHOTOALBUM_PARETOFRONT_H
 
-#include "solutions/moQAPSolution.h"
 #include <algorithm>
 /**
  * Class which returns pareto front from population

@@ -16,7 +16,7 @@ public:
      **/
     Init() {}
 
-    virtual void operator()(Solution & _solution) = 0;
+    virtual void operator()(moSolution & _solution) = 0;
 };
 
 class InitQAP : public Init{
@@ -26,7 +26,7 @@ public:
      **/
     InitQAP() : Init() {}
 
-    virtual void operator()(Solution & _solution) {
+    virtual void operator()(moSolution & _solution) {
 
         _solution.resize(_solution.size());
 
@@ -45,7 +45,7 @@ public:
      **/
     InitUBQP() : Init() {}
 
-    virtual void operator()(Solution & _solution) {
+    virtual void operator()(moSolution & _solution) {
 
         _solution.resize(_solution.size());
 

@@ -10,7 +10,7 @@
 #include "subProblems.h"
 #include "init.h"
 #include "repair.h"
-#include "mutation.h"
+#include "operators/mutation.h"
 #include "moAlgo.h"
 #include "paretoFront.h"
 //#include "checkSol.h"
@@ -22,9 +22,9 @@
  **/
 class FRRMAB_N_FRR : public MultiObjectiveAlgo {
 public:
-    FRRMAB_N_FRR(moEval &_eval, SubProblems &_subproblems, bool _pbType, Init &_init, std::vector<Mutation*> &_mutations, Repair &_repair,
+    FRRMAB_N_FRR(moEval &_eval, SubProblems &_subproblems, bool _pbType, Init &_init, std::vector<Operator*> &_operators, Repair &_repair,
            unsigned _mu, double _C, double _D, unsigned _neighborTaken, double _pFindNeighbor, unsigned _maxEval)
-            : evaluation(_eval), subProblems(_subproblems), pbType(_pbType), initialization(_init), mutations(_mutations), repair(_repair), mu(_mu),
+            : evaluation(_eval), subProblems(_subproblems), pbType(_pbType), initialization(_init), operators(_operators), repair(_repair), mu(_mu),
               C(_C), D(_D), neighborTaken(_neighborTaken), pFindNeighbor(_pFindNeighbor), maxEval(_maxEval)  {
 
         // Initialization
@@ -39,7 +39,7 @@ public:
         // resize pop to mu
         pop.resize(mu);
 
-        int nbOperators = mutations.size();
+        unsigned nbOperators = operators.size();
 
         for (int i = 0; i < mu; i++) {
 
@@ -103,13 +103,24 @@ public:
 
             // get best next op for sub problem
             int selectedOpIndex = getBestOp(i);
-            Mutation& mutation = *mutations.at(selectedOpIndex);
+            Operator& op = *operators.at(selectedOpIndex);
 
             mutant = pop[i];
             mutant.best(0);
 
+            // TODO use of repair function (local search)
             //while (!sHM.isNewSol(mutant)) {
-                mutation(mutant);
+
+                // get mutant solution from operator choose
+                if(op.getKind() == OpKind::CROSSOVER){
+
+                    mutant = op(mutant, pop[rand() % pop.size()]);
+
+                }else if(op.getKind() == OpKind::MUTATION){
+
+                    mutant = op(mutant);
+                }
+
                 //repair(mutant, i, true);
             //}
 
@@ -170,7 +181,7 @@ protected:
     moEval &evaluation;
     SubProblems &subProblems;
     Init &initialization;
-    std::vector<Mutation*> &mutations;
+    std::vector<Operator*> &operators;
     Repair &repair;
     unsigned mu;
 
@@ -243,7 +254,7 @@ private:
     void updateCreditAssignmentSubProblem(unsigned _subProblem) {
 
         // Init vector rewards and op values
-        std::vector<double> rewards(mutations.size());
+        std::vector<double> rewards(operators.size());
 
         for (int i = 0; i < rewards.size(); i++) {
             rewards.at(i) = 0.;
@@ -262,7 +273,7 @@ private:
         }
 
         // getting rank of each reward of operator
-        std::vector<unsigned> opRanks(mutations.size());
+        std::vector<unsigned> opRanks(operators.size());
 
         // set default indexes
         std::size_t n(0);
@@ -273,10 +284,10 @@ private:
 
 
         // Compute decay values of each op and decaySum
-        std::vector<double> decays(mutations.size());
+        std::vector<double> decays(operators.size());
         double decaySum = 0.;
 
-        for (unsigned op = 0; op < mutations.size(); op++) {
+        for (unsigned op = 0; op < operators.size(); op++) {
 
             unsigned rank = std::find(opRanks.begin(), opRanks.end(), op) - opRanks.begin();
             decays.at(op) = pow(D, (rank + 1)) * rewards.at(op);
@@ -284,7 +295,7 @@ private:
         }
 
         // Compute new FFRs value
-        for (unsigned op = 0; op < mutations.size(); op++) {
+        for (unsigned op = 0; op < operators.size(); op++) {
             if(decaySum != 0)
                 FFRs.at(_subProblem).at(op) = decays.at(op) / decaySum;
             else
@@ -345,14 +356,14 @@ private:
                 std::vector<unsigned> neighbors = subProblems.neighborProblems(_subProblem);
 
                 // create new variables which will be used for compute new FFR values based on neighbor hood
-                std::vector<unsigned> nopNeighbor(mutations.size());
+                std::vector<unsigned> nopNeighbor(operators.size());
                 std::map<unsigned, double> FFRNeighbor;
 
                 // shuffle neighbors indexes to randomly choose them
                 std::random_shuffle(neighbors.begin(), neighbors.end());
 
                 // init values
-                for (unsigned i = 0; i < mutations.size(); i++) {
+                for (unsigned i = 0; i < operators.size(); i++) {
                     nopNeighbor.at(i) = 0;
                     FFRNeighbor.insert(std::make_pair(i, 0.));
                 }

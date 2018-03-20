@@ -20,24 +20,24 @@ public:
     moSolution() : Solution() {}
 
     moSolution(const moSolution & _s) : Solution(_s) {
-    objvec = _s.objvec;
-  }
+        objvec = _s.objvec;
+    }
 
-    moSolution& operator=(moSolution & _s) {
-    objvec = _s.objvec;
+    moSolution operator=(moSolution _s) {
+        objvec = _s.objvec;
 
-    this->resize(_s.size());
-    for(unsigned int i = 0; i < _s.size(); i++)
-      this->operator[](i) = _s[i];
+        this->resize(_s.size());
+        for(unsigned int i = 0; i < _s.size(); i++)
+          this->operator[](i) = _s[i];
 
-    this->fitness(_s.fitness());
-    this->ID(_s.ID());
-    this->dir(_s.dir());
-    this->from(_s.from());
-    this->best(_s.best());
+        this->fitness(_s.fitness());
+        this->ID(_s.ID());
+        this->dir(_s.dir());
+        this->from(_s.from());
+        this->best(_s.best());
 
-    return *this;
-  }
+        return *this;
+    }
 
   /**
    * print the solution

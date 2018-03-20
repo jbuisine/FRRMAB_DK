@@ -8,19 +8,19 @@
 #endif //PHOTOALBUM_REPAIR_H
 
 #include "subProblems.h"
-#include "mutation.h"
+#include "operators/mutation.h"
 #include "evals/moEval.h"
 
 
 class Repair{
 
 public:
-    Repair(unsigned _nbIteration, moEval &_evaluation, SubProblems &_subProblems, Mutation &_operator)
-            : subProblems(_subProblems), evaluation(_evaluation), mutation(_operator){
+    Repair(unsigned _nbIteration, moEval &_evaluation, SubProblems &_subProblems, Mutation &_mutation)
+            : subProblems(_subProblems), evaluation(_evaluation), mutation(_mutation){
         this->nbIteration = _nbIteration;
     };
 
-    virtual void operator()(moSolution& _solution, unsigned _subProblem, bool _minimize) = 0;
+    virtual moSolution operator()(moSolution _solution, unsigned _subProblem, bool _minimize) = 0;
 
 protected:
 
@@ -40,11 +40,11 @@ public:
     /**
      * Constructor
      **/
-    HillClimber(unsigned _nbIteration, moEval &_evaluation, SubProblems &_subProblems, Mutation &_operator)
-            : Repair(_nbIteration, _evaluation, _subProblems, _operator) {};
+    HillClimber(unsigned _nbIteration, moEval &_evaluation, SubProblems &_subProblems, Mutation &_mutation)
+            : Repair(_nbIteration, _evaluation, _subProblems, _mutation) {};
 
 
-    virtual void operator()(moSolution& _solution, unsigned _subProblem, bool _minimize){
+    virtual moSolution operator()(moSolution _solution, unsigned _subProblem, bool _minimize){
 
         unsigned iteration = 0;
         double bestFitness = _solution.fitness();
@@ -54,13 +54,13 @@ public:
         while(iteration < nbIteration){
 
             moSolution currentSolution = bestSolution;
-            mutation(currentSolution);
+            currentSolution = mutation(currentSolution);
 
             for(int i = 0; i < size; i++){
 
                 moSolution mutant = currentSolution;
 
-                mutation(mutant);
+                mutant = mutation(mutant);
                 evaluation(mutant);
 
                 double fitness = subProblems.scalarfunc(_subProblem, mutant);
@@ -83,6 +83,6 @@ public:
         }
 
         // set best solution
-        _solution = bestSolution;
+        return bestSolution;
     }
 };

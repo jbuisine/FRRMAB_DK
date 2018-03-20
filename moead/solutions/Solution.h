@@ -14,7 +14,7 @@ public:
     Solution() {};
 
     // operator overload
-    int &operator[](int i) {
+    bool &operator[](int i) {
         // check size
         if( i > n ) {
             throw("Index out of bounds");
@@ -31,7 +31,7 @@ public:
     };
 
     void resize(const unsigned _size){
-        arr = new int[_size];
+        arr = new bool[_size];
         this->n = _size;
     };
 
@@ -103,7 +103,7 @@ protected:
     double score;
 
     // problem info
-    int* arr;
+    bool* arr;
 };
 
 #endif //PHOTOALBUM_SOLUTION_H

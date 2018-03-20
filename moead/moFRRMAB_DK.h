@@ -6,24 +6,25 @@
 #include <map>
 #include <vector>
 #include <fstream>
-#include "solutions/moQAPSolution.h"
 #include "subProblems.h"
 #include "init.h"
 #include "repair.h"
-#include "mutation.h"
+#include "operators/mutation.h"
 #include "moAlgo.h"
 #include "paretoFront.h"
+#include "hyperVolume.h"
 //#include "checkSol.h"
 
 /**
    FRRMAB which uses sliding windows for each directions and share Reward to compute FRR information of current direction
    - alpha : [0, 1], value which declare affinity of a direction and its neighbors
  **/
+
 class FRRMAB_DK : public MultiObjectiveAlgo {
 public:
-    FRRMAB_DK(moEval &_eval, SubProblems &_subproblems, bool _pbType, Init &_init, std::vector<Mutation*> &_mutations, Repair &_repair,
+    FRRMAB_DK(moEval &_eval, SubProblems &_subproblems, bool _pbType, Init &_init, std::vector<Operator*> &_operators, Repair &_repair,
            unsigned _mu, double _C, double _D, double _affinity, unsigned _maxEval)
-            : evaluation(_eval), subProblems(_subproblems), pbType(_pbType), initialization(_init), mutations(_mutations), repair(_repair), mu(_mu),
+            : evaluation(_eval), subProblems(_subproblems), pbType(_pbType), initialization(_init), operators(_operators), repair(_repair), mu(_mu),
               C(_C), D(_D), affinity(_affinity), maxEval(_maxEval)  {
 
         // Initialization
@@ -38,7 +39,7 @@ public:
         // resize pop to mu
         pop.resize(mu);
 
-        int nbOperators = mutations.size();
+        unsigned nbOperators = operators.size();
 
         for (int i = 0; i < mu; i++) {
 
@@ -94,6 +95,7 @@ public:
             pfPop.push_back(pop[i]);
         }
 
+
         moSolution mutant;
 
         // stopping criterium is the number of seconds
@@ -103,18 +105,32 @@ public:
 
             // get best next op for sub problem
             int selectedOpIndex = getBestOp(i);
-            Mutation& mutation = *mutations.at(selectedOpIndex);
+            Operator& op = *operators.at(selectedOpIndex);
 
             mutant = pop[i];
             mutant.best(0);
 
+            // TODO use of repair function (local search)
             //while (!sHM.isNewSol(mutant)) {
-                mutation(mutant);
-                //repair(mutant, i, true);
+
+                // get mutant solution from operator choose
+                if(op.getKind() == OpKind::CROSSOVER){
+
+                    unsigned index = rand() % pop.size();
+                    mutant = op(mutant, pop[index]);
+
+                }else if(op.getKind() == OpKind::MUTATION){
+
+                    mutant = op(mutant);
+                }
+
+            evaluation(mutant);
+
+            //mutant = repair(mutant, i, pbType);
+
             //}
 
             //sHM.insertSol(mutant);
-            evaluation(mutant);
             nbEval++;
             mutant.ID(nbEval);
 
@@ -160,7 +176,12 @@ public:
 
             // next direction
             i++;
-            if (i >= mu) i = 0;
+            if (i >= mu) {
+                i = 0;
+                HyperVolume hv;
+                std::cout << "POP : " << hv(pop) << std::endl;
+                std::cout << "PF : " << hv(pfPop) << std::endl;
+            }
             //std::cout << ((double)nbEval / (double)maxEval) * 100. << "%" << std::endl;
         }
         // set duration time
@@ -171,7 +192,7 @@ protected:
     moEval &evaluation;
     SubProblems &subProblems;
     Init &initialization;
-    std::vector<Mutation*> &mutations;
+    std::vector<Operator*> &operators;
     Repair &repair;
     unsigned mu;
 
@@ -242,7 +263,7 @@ private:
      */
     void updateCreditAssignmentSubProblem(unsigned _subProblem) {
 
-        unsigned nbOperators = mutations.size();
+        unsigned nbOperators = operators.size();
 
         // Init vector rewards and op values
         std::vector<double> rewards(nbOperators);
@@ -290,7 +311,7 @@ private:
 
 
         // getting rank of each reward of operator
-        std::vector<unsigned > opRanks(mutations.size());
+        std::vector<unsigned > opRanks(operators.size());
 
         // set default indexes
         std::size_t n(0);
@@ -301,10 +322,10 @@ private:
 
 
         // Compute decay values of each op and decaySum
-        std::vector<double> decays(mutations.size());
+        std::vector<double> decays(operators.size());
         double decaySum = 0.;
 
-        for (unsigned op = 0; op < mutations.size(); op++) {
+        for (unsigned op = 0; op < operators.size(); op++) {
 
             unsigned rank = std::find(opRanks.begin(), opRanks.end(), op) - opRanks.begin();
             decays.at(op) = pow(D, (rank + 1)) * rewards.at(op);
@@ -312,7 +333,7 @@ private:
         }
 
         // Compute new FRRs value
-        for (unsigned op = 0; op < mutations.size(); op++) {
+        for (unsigned op = 0; op < operators.size(); op++) {
             if(decaySum != 0)
                 FRRs.at(_subProblem).at(op) = decays.at(op) / decaySum;
             else

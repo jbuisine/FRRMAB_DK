@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <math.h>
+#include <solutions/moSolution.h>
 
 /******************************************************
  * Abstract class for the computation of string evaluation
