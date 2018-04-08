@@ -43,5 +43,8 @@
 build/
 cmake-build-debug/
 
+#UBQP instances
+*.dat
+
 # Mac OS
 .DS_Store

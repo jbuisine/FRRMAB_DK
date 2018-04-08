@@ -26,8 +26,8 @@ cmake
 
 # MOEA/D
 
-For MOEA/D algorithm, QAP instances are generated following this available [generator](http://www.cs.bham.ac.uk/~jdk/mQAP/). 
+For MOEA/D algorithm UBQP instances are used and generated following this available [generator](http://mocobench.sourceforge.net/index.php?n=Problem.MUBQP).
 
 # Licence
 
-[CeCILL](http://www.cecill.info/index.en.html)
+[LGPLv3](http://www.cecill.info/index.en.html)

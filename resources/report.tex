@@ -4,55 +4,63 @@
 \usepackage[utf8]{inputenc}
 \usepackage{fancyhdr}
 \usepackage{natbib}
+\usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{dirtytalk}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{graphics}
+\usepackage{changepage}
 \usepackage[table]{xcolor}%
 
 % Display format page configuration
-\addtolength{\oddsidemargin}{-.875in}
-\addtolength{\evensidemargin}{-.875in}
-\addtolength{\textwidth}{1.75in}
-\addtolength{\topmargin}{-.875in}
-\addtolength{\textheight}{1.75in}
+%\addtolength{\oddsidemargin}{-.875in}
+%\addtolength{\evensidemargin}{-.875in}
+%\addtolength{\textwidth}{1.75in}
+%\addtolength{\topmargin}{-.875in}
+%\addtolength{\textheight}{1.75in}
 
 \newlength\mylen
 \newcommand\myinput[1]{%
-  \settowidth\mylen{\KwIn{}}%
-  \setlength\hangindent{\mylen}%
-  \hspace*{\mylen}#1\\}
+\settowidth\mylen{\KwIn{}}%
+\setlength\hangindent{\mylen}%
+\hspace*{\mylen}#1\\}
 
 %Setting color syntax language%
 \usepackage{listings}
 \usepackage{color}
- 
+\usepackage{xcolor}
+
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 \definecolor{keywordcolor}{rgb}{1,0.20,0.1}
 
+\definecolor{redcolour}{rgb}{1,0,0}
 
- 
+
 \lstdefinestyle{mystyle}{
-    backgroundcolor=\color{backcolour},   
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{keywordcolor},
-    numberstyle=\tiny\color{codegray},
-    stringstyle=\color{codepurple},
-    basicstyle=\footnotesize,
-    breakatwhitespace=false,         
-    breaklines=true,                 
-    captionpos=b,                    
-    keepspaces=true,                 
-    numbers=left,                    
-    numbersep=5pt,                  
-    showspaces=false,                
-    showstringspaces=false,
-    showtabs=false,                  
-    tabsize=2
+backgroundcolor=\color{backcolour},
+commentstyle=\color{codegreen},
+keywordstyle=\color{keywordcolor},
+numberstyle=\tiny\color{codegray},
+stringstyle=\color{codepurple},
+basicstyle=\footnotesize,
+breakatwhitespace=false,
+breaklines=true,
+captionpos=b,
+keepspaces=true,
+numbers=left,
+numbersep=5pt,
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+tabsize=2
 }
- 
-\lstset{style=mystyle}
+
+%\lstset{style=mystyle}
 
 % Settings head and footer
 \pagestyle{fancy}
@@ -68,259 +76,632 @@
 
 \begin{document}
 
-\maketitle
+    \maketitle
 
-\vspace{30mm}
+    \vspace{30mm}
 
-\tableofcontents
-\newpage
+    \tableofcontents
+    \newpage
 
-\section{Abstract}
+    \begin{abstract}
+        This paper presents new approach of \textit{Adaptive Operator Selection} (AOS) applied into Multiobjective Evolutionary Algorithm based on Decomposition (MOEA/D) algorithm. Our AOS algorithm structure is mainly based on the \textit{Fitness-Rate-Rank-based Multi-Armed Bandit} (FRRMAB) introduced in \citep{DBLP:journals/tec/LiFKZ14}. FRRMAB which uses Upper Confidence Bound algorithm to choose the best operator at iteration $i$. In our article, we introduced the \textit{Fitness-Rate-Rank-based Multi-Armed Bandit using Directions Knowledge} (FRRMABDK) algorithm. Its aim is to take care of closest sub problems operators rewards information to select the best operator. For our article we use the Unconstrained Binary Quadratic Programming \citep{DBLP:journals/jco/KochenbergerHGLLWW14} (UBQP) instances, especially bi-objective UBQP (bUBQP) to compare FRRMAB and FRRMABDK.
 
-This paper presents new approach of \textit{Adaptive Operator Selection} (AOS) into \textit{Multiobjective Evolutionary Algorithm based on Decomposition} (MOEA/D). MOEA/D decomposes a multiobjective optimization problem into a number of scalar optimization subproblems and optimizes them simultaneously. AOS' aim is to select the best operator at iteration $i$ based on their recent performances within an optimization process. 
+        \vspace{3mm}
 
-\vspace{3mm}
+        This article is composed of three sections. The first one make a state of art of AOS into MOAE/D and explain FRRMAB approach. The second part introduced our implementation called FRRMABDK then we present our results obtained by comparing FRRMAB and FRRMABDK using bUBQP instances.
 
-The AOS algorithm structure is mainly based on the \textit{Fitness-Rate-Rank-based Multi-Armed Bandit} (FRRMAB) introduced in \citep{DBLP:journals/tec/LiFKZ14}. FRRMAB uses Upper Confidence Bound algorithm to choose the best operator at iteration $i$. In our article, we introduced the \textit{Fitness-Rate-Rank-based Multi-Armed Bandit using Directions Knowledge} (FRRMABDK) algorithm. Its aim is to take care of closest subproblems operators rewards information to select the best operator. 
+    \end{abstract}
 
+    \section{State of art}
 
-\newpage
+    \subsection{Adaptive Operator Selection}
 
-\section{Introduction}
+    Evolutionary algorithms use a lot of operators in order to generate an offspring which may bring a better solution for next generations. Best known operators are mutation and crossover. Mutation generate a new solution from only one solution of the population by swapping some features of the original solution. Crossover, generate one or two solutions by merging features of two selected solutions from population. The choice of the operators pool are strongly based on the kind of solution and problem. Some research have been done studying for an adaptive choice of operator at specific generation of the algorithm. Adaptive Operator Selection (AOS) use this principle to make an autonomous choice of next operator we need to make better solution \citep{DBLP:phd/hal/Fialho10}. AOS are coupled with the main evolutionary algorithm. Thereby, AOS can indicate next operator to use which is might be the best by learning from rewards received of this new generation.
 
-MOEA/D decomposes a multiobjective optimization problem into a number of scalar optimization subproblems and optimizes them simultaneously during optimization process. 
+    \subsection{Upper Confidence Bound}
 
-\newpage
-\section{FRRMAB using Directions Knowledge}
+    These researches use the well known  Upper Confidence Bound (UCB) reinforcement learning algorithm \citep{DBLP:journals/ml/AuerCF02} used for solving $k$-armed bandits. The algorithm is based on the principle of optimism in the face of uncertainty, which is to choose your actions as if the environment is as nice as is plausibly possible. $C$ variable of UCB formula manage the trade-off between Exploration and Exploitation (EvE trade-off).
 
+    \begin{equation} \label{eq:UCB} \tag{UCB}
+    y = argmax_{i=\{i...K\}} \left( \hat{x}_{i} + C * \sqrt{\frac{2 * ln\sum_{j=1}^{K} n_{j}}{n_{i}}} \right)
+    \end{equation}
 
-\subsection{Updates of Fitness Rate Ranks}
+    In case of AOS approach, $\hat{x}_i$ reprensents the reward associated to an operator and $n_i$, the number of times the operator was chosen.
 
+    \vspace{3mm}
+    To estimate the performance of a given strategy, regret formula is used. It gives an approximation of the regret if we always use best actions at time $t$.
 
-\begin{algorithm}[H]
-\SetAlgoLined
+    \begin{equation} \label{eq:Regret} \tag{Regret}
+    R_n = n\mu^* - \sum_{t=1}^{n} x_t
+    \end{equation}
 
-Initialize each reward $Reward_i$ = 0; \\
-Initialize each $nb_{op}$ = 0;
+    Such that :
+    \begin{itemize}
+        \item $\mu^*$ : mean reward value of best arm.
+        \item $x_t$ : reward gained at step $t$.
+    \end{itemize}
 
-\For{$i := 0$ to SlidingWindow[$subProblem$].$length$}{
-        $op$ = SlidingWindow[$subProblem$].$getIndexOp(i)$; \\
-        $FIR$ = SlidingWindow[$subProblem$].$getFIR(i)$; \\ 
-        $Reward_{op}$ = $Reward_{op} + FIR$; \\ 
-        $nb_{op}++$;
-}
+    \subsection{MOEA/D algorithm}
 
-\For{$n$ : $neighbors$}{
-    
-    $dist$ = $|subProblem - n |$;
+    MOEA/D \citep{DBLP:journals/tec/ZhangL07} algorithm decomposes a multiobjective optimization problem into a number of scalar optimization sub problems and optimizes them simultaneously. Scalarizing approaches consist in transforming the original problem into a single-objective one by means of an aggregation of the objective function values. There is two typical scalarizing functions used at the moment.
 
-    \For{$j := 0$ to SlidingWindow[$n$].$length$}{
-        $op$ = SlidingWindow[$n$].$getIndexOp(j)$; \\
-        $FIR_n$ = SlidingWindow[$n$].$getFIR(j)$; \\ 
-        $Reward_{op}$ = $Reward_{op} + (FIR_n * \alpha^{dist})$; \\ 
-    }
-}
+    \begin{itemize}
+        \item
+        Weighted-sum scalarizing function \citep{DBLP:conf/emo/LiefoogheDVAT17}.
 
-Rank $Reward_i$ in descending order and set $Rank_i$ to be the rank value of operator $i$; \\
-
-\For{$op := 1$ to $K$}{
-    $Decay_{op} = D^{Rank_{op}} * Reward_{op}$;
-}
-
-$DecaySum = \sum_{op=1}^{K} Decay_{op}$;
-
-\For{$op := 1$ to $K$}{
-    $FRR_{op} = Decay_{op} / DecaySum$;
-}
-
-\caption{updateCreditAssignmentSubProblem($subProblem$)}
-\end{algorithm}
-
-\subsection{UCB algorithm, operator choice}
-
-\vspace{3mm}
-
-\begin{algorithm}[H]
-\SetAlgoLined
-
-$FRR$ = $FRRs(subProblem)$; \\
-
-\If{There are operators that have not been selected}{
-    $op_t$ = one op randomly choose from operators pool not already chosen;
-}\Else{
-    $op_t$ = $argmax_{i=\{i...K\}} \left( FFR_{i,t} + C * \sqrt{\frac{2 * ln\sum_{j=1}^{K} nb_{j,t}}{nb_{i,t}}} \right)$
-}
-\caption{FRRMABDK($subProblem$)}
-\end{algorithm}
-
-
-\subsection{MOEA/D using FRRMABDK}
-
-\tab The Multiobjective Evolutionary Algorithm Based on Decomposition \citep{DBLP:journals/tec/ZhangL07} is a scalarizing approach with population. Scalarizing approaches consist in transforming the original problem into a single-objective one by means of an aggregation of the objective function values. There is two typical scalarizing functions used into this paper. 
-
-\begin{itemize}
-    \item
-        Weighted-sum scalarizing function \citep{DBLP:conf/emo/LiefoogheDVAT17} defined below.
-        
         $$g_\lambda(x) = \lambda_1.f_1(x) + \lambda_2.f_2(x)$$
-        where $x \in S_n$ is a candidate solution, and $\lambda = (\lambda_1, \lambda_2)$ is a weighting coefficient vector. 
-    \item 
-        Tchebycheff scalarizing function defined as follows.
-        
+        where $x \in S_n$ is a candidate solution, and $\lambda = (\lambda_1, \lambda_2)$ is a weighting coefficient vector.
+        \item
+        Tchebycheff scalarizing function.
+
         $$g_{\lambda} (x) = \min \bigg\{ \lambda_1 * |f_1(x) - r_1|, \lambda_2 * |f_2(x) - r_2| \bigg\} $$
-        
-        where $r$ is a reference point in the objective space, as example $r(0,0)$. 
-\end{itemize}
 
-\vspace{3mm}
+        where $r$ is a reference point in the objective space, as example $r(0,0)$ in case of minimizing.
+    \end{itemize}
 
-\begin{algorithm}[H]
-\SetAlgoLined
+    In our article we mainly focus on the weighted-sum scalarizing function approach. MOEA/D we have implemented will be described in section 2 (algorithm \ref{alg:moead}).
 
-Initialize the population $\{x^1, ... , x^N\}$ and $z*$; \\
-Initialize $\alpha$ [0, 1]; 
+    \subsection{FRRMAB}
 
-\For{$i := 0$ to $N$}{
+    FRRMAB algorithm proposes in \citep{DBLP:journals/tec/LiFKZ14}, uses Upper Confidence Bound algorithm to choose the probable best operator from an operators pool to generate new offspring. As explain previously, UCB proposes EvE trade-off which means if we do not use an operator for long time, we have better chance to select it (exploration) as contrary, if an operator gave more great results (rewards) than others we have better chance to select it. An AOS using a pool of $K$ operators is implement for the whole population of MOEA/D algorithm.
 
-    $B(i) = \{i_1, ... , i_T\}$ where $\lambda^{i_1}, ... , \lambda^{i_T}$ are the $T$ closest weight vectors to direction $\lambda^i$;
-    
-    Initialize sliding window of size $W$ for direction $i$. 
-}
+    \vspace{3mm}
 
-\Repeat{\textit{Stopping criterion is not satisfied}}
-{
-    \For{$i := 0$ to $N$}{
-        
-        
-        $op$ = $FRRMABDK(i)$; \\
-        
-        $x^i$ = $pop[i]$; \\ 
-        generate $y$, a mutant solution from $x^i$ using $op$ operator; \\
-        $repair(i)$; 
-        
-        $neighbors$ = $getNeighbors(i)$; \\
-        
-        $FIR_{op} = 0$; 
-        
-        \For{$n$ : $neighbors$}{
-            
-            $\nabla = \frac{g\left(x^n | \lambda^n, z* \right) - g\left( y | \lambda^n, z* \right)}{g\left(x^n | \lambda^n, z* \right)} $; 
-            
-            \If{$\nabla > 0$}{
-                Replace $x^n$ with $y$; \\
-                $FIR_{op} = FIR_{op} + \nabla$; 
-            }
+    They enumerate two issues well known about the computation of \textit{Credit Assignment} :
+
+    \begin{itemize}
+        \item how to measure the impact in the search process caused
+        by the application of an operator.
+        \item how to assign an appropriate credit value to an operator
+        based on this measured impact.
+    \end{itemize}
+
+    Generally, the Fitness Improvement Rate (FIR) is used to get feedback evolution of solution. This feedback is used to get information about how the operator has work. More specifically, the FIR achieved by an operator i at time point $t$ is defined as:
+
+    \begin{equation} \label{eq:FIR} \tag{FIR}
+    FIR_{i,t} = \frac{pf_{i,t} - cf_{i,t}}{pf_{i,t}}
+    \end{equation}
+
+    where $pf_{i,t}$  is the fitness value of the parent, and $cf_{i,t} $ is the
+    fitness value of the offspring.
+
+    \vspace{3mm}
+    In order to counter these two previous enumerated issues, they introduced :
+
+
+    \begin{enumerate}[label=(\Alph*)]
+        \item A sliding window which stores $W$ pairs of (op, FIR) obtained during the run. the FIR value of the most recently used operator is added at the tail of the sliding window, while the oldest record (the item at the head of the queue) is removed to keep the window size constant.
+        \item A decaying parameter, $D \in [0, 1]$ to transform $Reward_i$, the sum of all $FIR$ of operator $i$ which are in sliding window.
+
+        \begin{equation} \label{eq:Decay} \tag{Decay factor}
+        Decay_i = D^{Rank_i} * Reward_i
+        \end{equation}
+
+        where $Rank_i$ is the rank value of operator $i$ after ranking all $Reward_i$ values in descending order. Then, Fitness Rate Rank (FRR) is used into left part of UCB formula. UCB formula is computed as follows.
+
+        \begin{equation} \label{eq:FIR} \tag{FIR}
+        FRR_{i,t} = \frac{Decay_i}{\sum\limits_{j=1}^K Decay_j}
+        \end{equation}
+    \end{enumerate}
+
+
+    \section{FRRMAB using Directions Knowledge}
+
+    In this section, we introduce a way of sharing information between each sub problem using AOS. This new algorithm is fully inspired of FRRMAB algorithm. In FRRMAB, an AOS was implemented for the whole population of the algorithm. FRRMABDK implements an AOS for each direction of MOEA/D. So, each direction will manage its manner of choosing new operator for next generation independently from others.
+
+    \vspace{3mm}
+
+    Choosing an operator only for a specific directions could be interesting for converging faster to non dominated optimal solutions but sharing information and knowledge between these directions could be better. Hence, A new $\alpha \in [0, 1]$ parameter is introduced in FRRMABDK. This parameter will manage the way of taking care about operators information and knowledge from neighbors directions.
+
+    \vspace{3mm}
+
+    Based on the distance criteria from neighbors directions of direction $i$, $\alpha$ will take in account the knowledge of these neighbors to compute FRR of operator $j \in K$ where $K$ is the number of operators. Algorithm \ref{alg:updateFRR} explains how the FRR of direction $i$ is update, described the use of $\alpha$ parameter.
+
+
+    \subsection{Updates of Fitness Rate Ranks}
+
+    As we have an AOS for each direction, we have to compute $Reward_i$ of each direction and then compute $FRR_i$.
+
+    \vspace{3mm}
+
+    \begin{algorithm}[H]
+        \label{alg:updateFRR}
+        \SetAlgoLined
+
+        Initialize each reward $Reward_i$ = 0; \\
+        Initialize each $nb_{op}$ = 0;
+
+        \For{$i := 0$ to SlidingWindow[$subProblem$].$length$}{
+        $op$ = SlidingWindow[$subProblem$].$getIndexOp(i)$; \\
+        $FIR$ = SlidingWindow[$subProblem$].$getFIR(i)$; \\
+        $Reward_{op}$ = $Reward_{op} + FIR$; \\
+        $nb_{op}++$;
         }
-        
+
+        \For{$n$ : $neighbors$}{
+
+        $dist$ = $|subProblem - n |$; \\
+        $Reward_{n, op}$ = $0$; \\
+        $nb_{n, op}$ = $0$; \\
+
+        \For{$j := 0$ to SlidingWindow[$n$].$length$}{
+        $op$ = SlidingWindow[$n$].$getIndexOp(j)$; \\
+        $Reward_{n, op}$ = $Reward_{n, op} + $ SlidingWindow[$n$].$getFIR(j)$; \\
+        $nb_{n, op} ++$; \\
+        }
+
+        \For{$op := 0$ to K}{
+        \textit{// dist of 0 is current direction} \\
+        $Reward_{op}$ = $Reward_{op} + (Reward_{n, op}  * \alpha^{dist})$;  \\
+        $nb_{op} = nb_{op} + nb_{n, op}$; \\
+        }
+        }
+
+        Rank $Reward_i$ in descending order and set $Rank_i$ to be the rank value of operator $i$; \\
+
+        \For{$op := 0$ to $K$}{
+        $Decay_{op} = D^{Rank_{op}} * Reward_{op}$;
+        }
+
+        $DecaySum = \sum_{op=1}^{K} Decay_{op}$;
+
+        \For{$op := 0$ to $K$}{
+        $FRRs(subProblem).FRR(op) = Decay_{op} / DecaySum$;
+        }
+
+        \caption{updateCreditAssignmentSubProblem($subProblem$)}
+    \end{algorithm}
+
+    \subsection{UCB algorithm, operator choice}
+
+    Like FRRMAB does, UCB algorithm is then used for choosing next best estimated operator of direction $i$ at time $t$. Note that in our implementation $FRR_i$ values are computed for each direction $i$.
+
+    \vspace{3mm}
+
+    \begin{algorithm}[H]
+        \label{alg:getBestOp}
+        \SetAlgoLined
+
+        $FRR_i$ = $FRRs(subProblem)$; \\
+
+        \If{There are operators that have not been selected}{
+        $op_t$ = one op randomly choose from operators pool not already chosen;
+        }\Else{
+        $op_t$ = $argmax_{k=\{0...K\}} \left( FRR_{i, k,t} + C * \sqrt{\frac{2 * ln\sum_{j=1}^{K} nb_{j,t}}{nb_{k,t}}} \right)$
+        }
+        \caption{FRRMABDK($subProblem$)}
+
+    \end{algorithm}
+
+
+    \subsection{MOEA/D using FRRMABDK}
+
+    \vspace{3mm}
+
+    \begin{algorithm}[H]
+        \label{alg:moead}
+        \SetAlgoLined
+
+        Initialize $PF$ = $0$; \\
+        Initialize the population $\{x^1, ... , x^N\}$ and $z*$; \\
+
+        Initialize $\alpha$ [0, 1];
+
+        \For{$i := 0$ to $N$}{
+
+        $B(i) = \{i_1, ... , i_T\}$ where $\lambda^{i_1}, ... , \lambda^{i_T}$ are the $T$ closest weight vectors to direction $\lambda^i$;
+
+        Initialize sliding window of size $W$ for direction $i$; \\
+        repair($pop[i]$);
+        }
+
+        \Repeat{\textit{Stopping criterion is not satisfied}}
+        {
+        \For{$i := 0$ to $N$}{
+
+
+        $op$ = $FRRMABDK(i)$; \\
+
+        $x^i$ = $pop[i]$; \\
+        generate $y$, a mutant solution from $x^i$ using $op$ operator; \\
+        $repair(y)$;
+
+        $neighbors$ = $getNeighbors(i)$; \\
+
+        $FIR_{op} = 0$;
+
+        \For{$n$ : $neighbors$}{
+
+        $\nabla = \frac{g\left(x^n | \lambda^n, z* \right) - g\left( y | \lambda^n, z* \right)}{g\left(x^n | \lambda^n, z* \right)} $;
+
+        \If{$\nabla > 0$}{
+        Replace $x^n$ with $y$; \\
+        $FIR_{op} = FIR_{op} + \nabla$;
+        }
+        }
+
+        \If{$FIR_{op} > 0$}{
+        $PF = PF + y$; \\
+        $PF = getNonDominated(PF)$;
+        }
+
         $updateSlidingWindow(i, op, FIR_{op})$; \\
-        $updateCreditAssignmentSubProblem(i)$; 
-    }
-}
-\caption{MOEA/D-FRRMABDK}
-\end{algorithm}
+        $updateCreditAssignmentSubProblem(i)$;
+        }
+        }
+        \caption{MOEA/D-FRRMABDK}
+    \end{algorithm}
 
-\newpage
-\section{Test suites}
-\subsection{QAP problem instance}
+    \section{Experimentation}
 
-\subsection{Operators pool}
-List of these operators :
-\begin{enumerate}
-    \item Mutation operator which randomly choose $x_1$, an index of the QAP solution and permute it with the next cell. 
-    \item Mutation operator which randomly permutes $x_1$ and $x_2$, two different indexes of the solution.
-    \item Mutation operator which randomly permute two times $x_1$ and $x_2$ which are two different indexes of the solution.
-\end{enumerate}
+    \subsection{Bi-objective UBQP}
 
+    The bi-objective UBQP (bUBQP) problem can be formalized as follows \citep{DBLP:journals/asc/LiefoogheVH14}.
 
-\subsection{Results}
+    \begin{equation} \label{eq:bUBQP} \tag{bUBQP}
+    \begin{split}
+        \min f_1(x) = \sum_{i=1}^{n} \sum_{j=1}^{n} q^1_{ij}x_ix_j \\
+        \min f_2(x) = \sum_{i=1}^{n} \sum_{j=1}^{n} q^2_{ij}x_ix_j
+    \end{split}
+    \end{equation}
 
-\tab Same global parameters are used into these test results :
+    \centerline{subject to $x \in \{0, 1\}^n$}
 
-\begin{center}
-    \begin{tabular}{|l|c|r|}
-      \hline
-       seed & 10 \\
-      \hline
-       mu & 100 \\
-      \hline
-       T & 20 \\
-      \hline
-       W & 15 \\
-      \hline
-       C & $\sqrt{2}$ \\
-      \hline
-       D & 0.5 \\
-      \hline
-       evaluation & 1000000 \\
-      \hline
-    \end{tabular}
-\end{center}
+    \vspace{3mm}
 
-Note that, the Weighted-sum scalarizing function is used for each test suites.
+    where $(f_1, f_2)$ is the pair of objective functions to be maximized, $n$ is the number
+    of items, $Q_1 = (q^{ij}_1)$ and $Q2 = (q^{ij}_2)$ are both an $n*n$ matrix of constant values, either positive, negative or zero. As in the single-objective case, the solution
+    space $X = \{0, 1\}^n$ is defined on binary strings of size $n$; its size is then $2^n$.
 
-\vspace{3mm}
+    \subsection{Context}
 
-\tab We compare the \textit{\textbf{hypervolume}} metric obtained by the approximation of pareto front from FRRMAB and FRRMABDK. Operators list is initialized using different order combinations. 
+    A set of 15 bUBQP instances are generated and tested to compare FRRMAB and FRRMABDK performance. The considered bUBQP problem instances are generating using the available generator at the following URL : \url{http://mocolib.sf.net/}. The density $d \in [0, 1]$ gives the expected proportion of non-zero entries in the matrix. For FRRMABDK runs, step of $\alpha$ parameter is fixed to $0.1$ to compare its impact. Number of evaluation is fixed to $10.000$ to see the evolution impact and compare algorithms convergence.
 
-\vspace{3mm}
-First column defines operators combination, the second FRRMAB results and the others, FRRMABDK results with different \textbf{$\alpha$} affinity parameter value.
-  
-\begin{center}
-    \begin{tabular}{|l|c|r|r|r|r|r|}
-      \hline
-      Operators & FRRMAB & ...DK, $\alpha = 0.5$ & ...DK, $\alpha = 0.6$ & ...DK, $\alpha = 0.7$ & ...DK, $\alpha = 0.8$ & ...DK, $\alpha = 0.9$\\
-      \hline
-      (1, 2, 3) & 8.96529e+11 
-                & \cellcolor{green!20}8.9417e+11 
-                & \cellcolor{green!50}8.68122e+11 
-                & \cellcolor{green!100}8.53514e+11 
-                & \cellcolor{green!20}8.83109e+11 
-                & \cellcolor{green!50}8.66716e+11\\
-                
-      (1, 3, 2) & 8.69997e+11 
-                & \cellcolor{green!70}8.33684e+11 
-                & \cellcolor{red!40}8.93059e+11 
-                & \cellcolor{red!20}8.83973e+11 
-                & \cellcolor{red!50}9.14678e+11 
-                & \cellcolor{red!50}9.17512e+11\\
-                
-      (2, 1, 3) & 8.47605e+11 
-                & \cellcolor{red!20}8.62056e+11 
-                & \cellcolor{green!80}7.80205e+11 
-                & \cellcolor{red!40}8.89187e+11 
-                & \cellcolor{red!30}8.5989e+11 
-                & \cellcolor{red!35}8.63313e+11\\
-                
-      (2, 3, 1) & 8.47605e+11 
-                & \cellcolor{green!30}8.15611e+11 
-                & \cellcolor{red!10}8.5119e+11 
-                & \cellcolor{red!50}8.90212e+11 
-                & \cellcolor{red!70}9.15997e+11 
-                & \cellcolor{red!70}9.10662e+11\\
-                
-      (3, 1, 2) & 8.66909e+11 
-                & \cellcolor{red!20}8.90197e+11 
-                & \cellcolor{red!20}8.9376e+11 
-                & \cellcolor{green!50}8.31216e+11 
-                & \cellcolor{red!20}8.9186e+11 
-                & \cellcolor{green!80}7.90285e+11\\
-                
-      (3, 2, 1) & 8.88218e+11 
-                & \cellcolor{green!50}8.36726e+11 
-                & \cellcolor{green!50}8.38885e+11 
-                & \cellcolor{red!15}8.94274e+11 
-                & \cellcolor{green!10}8.79118e+11 
-                & \cellcolor{red!25}9.07816e+11\\
-      \hline
-    \end{tabular}
-\end{center}
+    \vspace{3mm}
 
-\newpage
-\section{Conclusion}
+    Features of bUBQP instances generated are :
+    \begin{itemize}
+        \item Non-zero matrix integer values are randomly generated following a uniform distribution in $[-100, +100]$.
+        \item Size $s \in [500, 1000]$
+        \item $d$ is fixed to $0.8$
+        \item Objective correlation $p \in [-0.5, -0.2, 0, 0.2, 0.5]$
+    \end{itemize}
 
-\tab Others operators... change MOEA/D $y$ solution generation...
+    \subsection{Operators pool}
+
+    We used a fixed set of operators into these runs enumerated below :
+    \begin{enumerate}
+        \item Mutation operator which randomly chooses $x_1$ and $x_2$, indexes of the bUBQP solution and permute them.
+        \item Mutation operator which randomly chooses two $x_i$, indexes of the bUBQP solution and change their values.
+        \item Crossover operator which takes two bUBQP solutions and randomly split them at $x_i$. Then a random merge is done related to this $x_i$ index and new solution is returned.
+    \end{enumerate}
+
+    \subsection{Results}
+
+    Since all the algorithms have a natural stopping condition, we measure their performance in terms of approximation set of Pareto front and computational cost. Hence, the hyper volume metric is used to see how an algorithm performs. Same global parameters are used for the two algorithms.
 
 
-\bibliographystyle{abbrv}
-\bibliography{references}
+    \begin{table}[h!]
+        \centering
+        \begin{tabular}{|l|c|r|}
+            \hline
+            seed & 10 \\
+            \hline
+            mu & 100 \\
+            \hline
+            T & 20 \\
+            \hline
+            W & 30 \\
+            \hline
+            C & $\sqrt{2}$ \\
+            \hline
+            D & 0.5 \\
+            \hline
+            evaluation & 10000 \\
+            \hline
+            Scalarizing function & Weighted-sum \\
+            \hline
+        \end{tabular}
+    \end{table}
+
+    Table \ref{table:hypervolume} compares hyper volume (HV) metric obtained after run each instance. Light grey cell targets the best HV score and light green cells indicate that FRRMABDK seems to five better HV than FRRMAB.
+
+    \begin{table}[h!]
+        %\begin{adjustwidth}{0cm}{}
+        \centering
+        \resizebox{\columnwidth}{!}{
+        \begin{tabular}{l|c|c|c|c|c|c|c|c|c|c}
+            \hline
+            Instance & FRRMAB & $\alpha = 0.1$ & $\alpha = 0.2$ & $\alpha = 0.3$ & $\alpha = 0.4$ & $\alpha = 0.5$  & $\alpha = 0.6$  & $\alpha = 0.7$  & $\alpha = 0.8$  & $\alpha = 0.9$ \\
+
+
+            %\cellcolor{black!10}
+
+            \hline
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 500$ \\ $p = -0.5$\end{tabular} & 3.44e+10
+            & \cellcolor{green!10}3.77e+10
+            & \cellcolor{green!10}3.68e+10
+            & \cellcolor{green!10}3.8e+10
+            & 3.2e+10
+            & 2.85e+10
+            & \cellcolor{green!10}3.45e+10
+            & \cellcolor{black!10}3.81e+10
+            & \cellcolor{green!10}3.47e+10
+            & \cellcolor{green!10}3.6e+10 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 500$ \\ $p = -0.2$\end{tabular} & 3.68e+10
+            & 3.12e+10
+            & \cellcolor{green!10}3.9e+10
+            & \cellcolor{green!10}3.97e+10
+            & \cellcolor{black!10}4.63e+10
+            & \cellcolor{green!10}4.45e+10
+            & 3.53e+10
+            & 3.55e+10
+            & 3.5e+10
+            & 3.5e+10 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 500$ \\ $p = 0$\end{tabular} & 4.37e+10
+            & \cellcolor{green!10}4.75e+10
+            & \cellcolor{green!10}4.75e+10
+            & \cellcolor{green!10}4.82e+10
+            & \cellcolor{green!10}4.63e+10
+            & \cellcolor{black!10}4.91e+10
+            & \cellcolor{green!10}4.6e+10
+            & \cellcolor{green!10}4.42e+10
+            & \cellcolor{green!10}4.38e+10
+            & \cellcolor{green!10}4.68e+10 \\
+
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 500$ \\ $p = 0.2$\end{tabular} & 5.26e+10
+            & \cellcolor{green!10}5.35e+10
+            & \cellcolor{green!10}5.32e+10
+            & \cellcolor{green!10}5.47e+10
+            & \cellcolor{green!10}5.26e+10
+            & 4.96e+10
+            & \cellcolor{green!10}5.44e+10
+            & \cellcolor{black!10}5.49e+10
+            & 4.94e+10
+            & \cellcolor{green!10}5.29e+10 \\
+
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 500$ \\ $p = 0.5$\end{tabular} & 5.74e+10
+            & \cellcolor{green!10}6.22e+10
+            & \cellcolor{black!10}6.62e+10
+            & \cellcolor{green!10}6.1e+10
+            & \cellcolor{green!10}6.13e+10
+            & \cellcolor{green!10}6.07e+10
+            & \cellcolor{green!10}6.2e+10
+            & 5.68e+10
+            & \cellcolor{green!10}5.75e+10
+            & \cellcolor{green!10}6.18e+10 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 1000$ \\ $p = -0.5$\end{tabular} & 1.8e+11
+            & \cellcolor{green!10}1.94e+11
+            & \cellcolor{green!10}2e+11
+            & \cellcolor{green!10}2.07e+11
+            & \cellcolor{green!10}2.11e+11
+            & \cellcolor{green!10}2.01e+11
+            & \cellcolor{green!10}2.11e+11
+            & 1.71e+11
+            & \cellcolor{black!10}2.14e+11
+            & \cellcolor{green!10}2.1e+11 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 1000$ \\ $p = -0.2$\end{tabular} & 1.88e+11
+            & \cellcolor{green!10}2.12e+11
+            & \cellcolor{black!10}3.28e+11
+            & \cellcolor{green!10}2.11e+11
+            & \cellcolor{green!10}2.02e+11
+            & \cellcolor{green!10}1.9e+11
+            & \cellcolor{green!10}2.18e+11
+            & \cellcolor{green!10}2.24e+11
+            & \cellcolor{green!10}1.94e+11
+            & \cellcolor{green!10}2.14e+11 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 1000$ \\ $p = 0$\end{tabular} & 2.32e+11
+            & \cellcolor{green!10}3.2e+11
+            & \cellcolor{green!10}3.09e+11
+            & 2.22e+11
+            & \cellcolor{green!10}3.38e+11
+            & \cellcolor{green!10}3.09e+11
+            & 1.64e+11
+            & \cellcolor{green!10}3.12e+11
+            & \cellcolor{green!10}2.36e+11
+            & \cellcolor{black!10}3.51e+11 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 1000$ \\ $p = 0.2$\end{tabular} & 3.29e+11
+            & \cellcolor{green!10}3.69e+11
+            & \cellcolor{green!10}3.3e+11
+            & 3e+11
+            & \cellcolor{green!10}3.43e+11
+            & \cellcolor{green!10}3.3e+11
+            & 3.16e+11
+            & \cellcolor{green!10}3.43e+11
+            & 2.67e+11
+            & \cellcolor{black!10}3.9e+11 \\
+
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 1000$ \\ $p = 0.5$\end{tabular} & 3.43e+11
+            & \cellcolor{green!10}4.11e+11
+            & \cellcolor{green!10}3.99e+11
+            & \cellcolor{green!10}4.09e+11
+            & \cellcolor{green!10}3.6e+11
+            & \cellcolor{green!10}3.91e+11
+            & \cellcolor{green!10}3.72e+11
+            & \cellcolor{green!10}3.98e+11
+            & \cellcolor{green!10}3.51e+11
+            & \cellcolor{black!10}4.59e+11 \\
+
+
+            \hline
+        \end{tabular}
+        }
+        \caption{Hyper volume comparisons}
+        \label{table:hypervolume}
+        %\end{adjustwidth}
+    \end{table}
+
+    Table \ref{table:timeComputation} compares time consuming during the search of each run in seconds. Time of FRRMABDK seems to be reasonable comparing FRRMAB computation time.
+
+    \begin{table}[h!]
+        %\begin{adjustwidth}{0cm}{}
+        \centering
+        \resizebox{\columnwidth}{!}{
+        \begin{tabular}{l|c|c|c|c|c|c|c|c|c|c}
+            \hline
+            Instance & FRRMAB & $\alpha = 0.1$ & $\alpha = 0.2$ & $\alpha = 0.3$ & $\alpha = 0.4$ & $\alpha = 0.5$  & $\alpha = 0.6$  & $\alpha = 0.7$  & $\alpha = 0.8$  & $\alpha = 0.9$ \\
+
+
+            %\cellcolor{black!10}
+
+            \hline
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 500$ \\ $p = -0.5$\end{tabular} & 77.9
+            & 63.8
+            & 65.6
+            & 62.4
+            & 65.9
+            & 67.1
+            & 59.2
+            & 60.2
+            & 60.8
+            & 64 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 500$ \\ $p = -0.2$\end{tabular} & 60.4
+            & 57.9
+            & 59.7
+            & 58.8
+            & 61.9
+            & 64.
+            & 57.6
+            & 59.4
+            & 59.6
+            & 61.1 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 500$ \\ $p = 0$\end{tabular} & 59.8
+            & 60.5
+            & 61.3
+            & 60.2
+            & 60.7
+            & 59.9
+            & 59.5
+            & 59.7
+            & 60.7
+            & 59.1\\
+
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 500$ \\ $p = 0.2$\end{tabular} & 61.9
+            & 58.7
+            & 58
+            & 59.8
+            & 59
+            & 59.7
+            & 58.8
+            & 59.2
+            & 58.2
+            & 59.3 \\
+
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 500$ \\ $p = 0.5$\end{tabular} & 59.8
+            & 59.3
+            & 60.6
+            & 59.6
+            & 59.7
+            & 58.5
+            & 59.5
+            & 58.8
+            & 58.6
+            & 59.4 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 1000$ \\ $p = -0.5$\end{tabular} & 372
+            & 250
+            & 236
+            & 230
+            & 245
+            & 240
+            & 243
+            & 243
+            & 253
+            & 253 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 1000$ \\ $p = -0.2$\end{tabular} & 234
+            & 228
+            & 222
+            & 227
+            & 229
+            & 229
+            & 234
+            & 214
+            & 203
+            & 199 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 1000$ \\ $p = 0$\end{tabular} & 224
+            & 198
+            & 206
+            & 208
+            & 206
+            & 202
+            & 204
+            & 199
+            & 209
+            & 202 \\
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 1000$ \\ $p = 0.2$\end{tabular} & 223
+            & 199
+            & 207
+            & 206
+            & 205
+            & 208
+            & 207
+            & 203
+            & 208
+            & 200 \\
+
+
+            \hline
+            \begin{tabular}{@{}c@{}}$s = 1000$ \\ $p = 0.5$\end{tabular} & 221
+            & 203
+            & 207
+            & 207
+            & 203
+            & 203
+            & 201
+            & 200
+            & 201
+            & 198 \\
+
+
+            \hline
+        \end{tabular}
+        }
+        \caption{Computation time comparisons}
+        \label{table:timeComputation}
+        %\end{adjustwidth}
+    \end{table}
+
+    \newpage
+    \section{Conclusion}
+
+    FRRMABDK algorithm approach seems to give great results. After that, we have to run few others instances with multiple runs. Use of a more important number of evaluation could give some indications about convergence of FRRMABDK.
+
+
+    \bibliographystyle{abbrv}
+    \bibliography{references}
 \end{document}
