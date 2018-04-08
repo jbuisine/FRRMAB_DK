@@ -6,17 +6,24 @@
 #define PHOTOALBUM_HYPERVOLUME_H
 
 
-struct moObjCmp{
+struct moObj1Cmp{
 
     bool operator()(std::pair<double, double> &p1, std::pair<double, double> &p2){
         return p1.first > p2.first;
     };
 };
 
+struct moObj2Cmp{
+
+    bool operator()(std::pair<double, double> &p1, std::pair<double, double> &p2){
+        return p1.second > p2.second;
+    };
+};
+
 class HyperVolume{
 
 public:
-    double operator()(std::vector<moSolution> _sols){
+    double operator()(std::vector<moSolution> _sols, std::pair<double, double> _ref ){
 
         // can't override < operator of moSolution(throw issue when = operator is also override)
         // use of pair
@@ -27,15 +34,19 @@ public:
         }
 
         // sort x axis value by desc
-        std::sort(objs.begin(), objs.end(), moObjCmp());
+        std::sort(objs.begin(), objs.end(), moObj1Cmp());
 
         double totalVolume = 0.;
         double previousY;
 
+        double minX = _ref.first;
+        double minY = _ref.second;
+
         for(int i = 0; i < objs.size(); ++i) {
 
-            double x = objs.at(i).first;
-            double y = objs.at(i).second;
+            double x = objs.at(i).first- minX;
+
+            double y = objs.at(i).second - minY;
 
             if(i == 0){
                 totalVolume += (x * y);

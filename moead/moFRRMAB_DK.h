@@ -1,5 +1,6 @@
-#ifndef __moAlgo__h
-#define __moAlgo__h
+#ifndef __FRRMAB_DK__h
+#define __FRRMAB_DK__h
+
 
 //#include "mpicxx.h"
 
@@ -16,7 +17,7 @@
 //#include "checkSol.h"
 
 /**
-   FRRMAB which uses sliding windows for each directions and share Reward to compute FRR information of current direction
+   FRRMAB_DK which uses sliding windows for each directions and share Reward to compute FRR information of current direction
    - alpha : [0, 1], value which declare affinity of a direction and its neighbors
  **/
 
@@ -65,7 +66,7 @@ public:
      *
      * @param fileout
      */
-    virtual void run(char *fileout) {
+    virtual void run(const char *fileout) {
         //simpleHashMap sHM;
         unsigned nbEval = 0;
         time_t begintime = time(NULL);
@@ -79,7 +80,11 @@ public:
         // initialization of the population
         pop.resize(mu);
         for (unsigned i = 0; i < mu; i++) {
+
             initialization(pop[i]);
+
+            //pop[i] = repair(pop[i], i, pbType);
+
             evaluation(pop[i]);
             pop[i].fitness(subProblems.scalarfunc(i, pop[i]));
             //repair(pop[i], i, true);
@@ -93,6 +98,9 @@ public:
             pop[i].save(file);
             // add this solution into pf pop
             pfPop.push_back(pop[i]);
+
+            // update min ref point to compute HV
+            updateMinRefPoint(pop[i]);
         }
 
 
@@ -110,6 +118,8 @@ public:
             mutant = pop[i];
             mutant.best(0);
 
+            mutant.op(selectedOpIndex);
+
             // TODO use of repair function (local search)
             //while (!sHM.isNewSol(mutant)) {
 
@@ -126,6 +136,7 @@ public:
 
             evaluation(mutant);
 
+            updateMinRefPoint(mutant);
             //mutant = repair(mutant, i, pbType);
 
             //}
@@ -161,7 +172,7 @@ public:
             }
 
             if(FIRop > 0){
-                pfPop.push_back(pop[i]);
+                pfPop.push_back(mutant);
                 pfPop = paretoFront(pfPop, pbType);
             }
 
@@ -179,10 +190,10 @@ public:
             if (i >= mu) {
                 i = 0;
                 HyperVolume hv;
-                std::cout << "POP : " << hv(pop) << std::endl;
-                std::cout << "PF : " << hv(pfPop) << std::endl;
+                //std::cout << "POP : " << hv(pop, minRefPoint) << std::endl;
+                std::cout << "PF : " << hv(pfPop, minRefPoint) << std::endl;
+                std::cout << ((double)nbEval / (double)maxEval) * 100. << "%" << std::endl;
             }
-            //std::cout << ((double)nbEval / (double)maxEval) * 100. << "%" << std::endl;
         }
         // set duration time
         duration = time(NULL) - begintime;
@@ -300,16 +311,17 @@ private:
             unsigned neighborDist = abs((int)_subProblem - (int)n);
 
             for(unsigned i = 0; i < nbOperators; i++){
-                rewards.at(i) += pow(affinity, neighborDist) * rewardsNeighbor.at(i);
 
                 // only take in consideration current sub problem for number of op
-                if(n == _subProblem)
+                //if(n == _subProblem) {
                     nop.at(_subProblem).at(i) += nopNeighbors.at(i);
+                //}
+                    //rewards.at(i) += rewardsNeighbor.at(i);
+                //}else{
+                    rewards.at(i) += pow(affinity, neighborDist) * rewardsNeighbor.at(i);
+                //}
             }
         }
-
-
-
         // getting rank of each reward of operator
         std::vector<unsigned > opRanks(operators.size());
 
@@ -351,7 +363,7 @@ private:
      */
     unsigned getBestOp(unsigned _subProblem) {
 
-        int selectedOp;
+        unsigned selectedOp;
 
         // check if all operator are used at least once
         if (checkUnusedOp.at(_subProblem)) {
@@ -415,7 +427,8 @@ private:
             }
 
         }
+
         return selectedOp;
     }
-};// end FFRMAB
+};// end FFRMAB_DK
 #endif

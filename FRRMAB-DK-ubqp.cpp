@@ -25,48 +25,24 @@ using namespace std;
 /***
  * Main
  *
- * argv[1] : Data file path
- * argv[2] : Disposition file path
- * argv[3] : random seed
- * argv[4] : mu
- * argv[5] : T
- * argv[6] : W (sliding window size)
- * argv[7] : C (UCB scaling trade-off factor EvE)
- * argv[8] : D (decaying factor in [0,1])
- * argv[9] : time in second of the run
- * argv[10] : output file name
- *
  ***/
 int main(int argc, char ** argv) {
 
-    // getting context files
-    std::string _dataFileName = "./../resources/ubqp/ubqpInstance500-v2.txt";
-
     // Get all params data
-    //std::string _dataFileName = argv[1];
-    //std::string _dispositionFileName = argv[1];
-    //int seed = atoi(argv[3]);
-    //unsigned mu = atoi(argv[4]);
-    //unsigned T = atoi(argv[5]);
-    //unsigned W = atoi(argv[6]);
-    //double C = atof(argv[7]);
-    //double D = atof(argv[8]);
-    //unsigned neighborTaken = atoi(argv[9]);
-    //double pFindNeighbor = atof(argv[10]);
-    //unsigned duration = atoi(argv[11]);
-
-    // default settings
-    int seed = 10;
-    unsigned mu = 100;
-    unsigned T = 20;
-    unsigned W = 15;
-    double C = sqrt(2.);
-    double D = 0.5;
-    double affinity = 0.1;
-    unsigned nbEval = 10000;
+    std::string dataFileName = std::string("./../resources/ubqp/") + argv[1];
+    unsigned mu = atoi(argv[2]);
+    unsigned T = atoi(argv[3]);
+    unsigned W = atoi(argv[4]);
+    double C = atof(argv[5]);
+    double D = atof(argv[6]);
+    double affinity = atof(argv[7]);
+    unsigned nbEval = atoi(argv[8]);
+    unsigned seed = atoi(argv[9]);
+    std::string fileout = std::string("./../resources/ubqp/stats/") + argv[10];
+    std::string pfFileout = std::string("./../resources/ubqp/stats/") + argv[11];
 
     // init all context info
-    UBQPParser fparser(_dataFileName);
+    UBQPParser fparser(dataFileName);
 
     int problem_size = fparser.getN();
 
@@ -87,8 +63,8 @@ int main(int argc, char ** argv) {
 
     operators.push_back(&mutation1);
     operators.push_back(&mutation2);
-    operators.push_back(&mutation3);
-    operators.push_back(&crossover1);
+    //operators.push_back(&mutation3);
+    //operators.push_back(&crossover1);
     operators.push_back(&crossover2);
 
     // End set Operators
@@ -105,15 +81,17 @@ int main(int argc, char ** argv) {
     cout << "----Starting FRRMAB_DK with UBQP instance----" << endl;
     FRRMAB_DK algo(eval, sp, false, init, operators, repair, mu, C, D, affinity, nbEval);
 
-    char* fileout = "./../resources/ubqp/stats/output.txt"; //argv[12]
+    //char* fileout = "./../resources/ubqp/stats/output_dk.txt";
 
-    algo.run(fileout);
+    algo.run(fileout.c_str());
 
     // getting pareto front from population
     std::vector<moSolution> pf = algo.pfPop;
 
     ofstream file;
-    file.open ("./../resources/qap/stats/front_pa_frrmab_dk.txt", ios::out);
+    
+    file.open(pfFileout, ios::out);
+    
     for(unsigned i = 0; i < pf.size(); i++){
         pf[i].print();
         file << pf[i].toString() << endl;
@@ -124,7 +102,7 @@ int main(int argc, char ** argv) {
     HyperVolume hv;
 
     std::cout << "End of FRRMAB_DK (n. eval = " << nbEval << ", duration = " << algo.duration << ")" << std::endl;
-    std::cout << "HV : " << hv(pf) << std::endl;
+    std::cout << "HV : " << hv(pf, algo.minRefPoint) << std::endl;
   
     return 0;
 }
