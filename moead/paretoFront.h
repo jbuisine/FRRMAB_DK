@@ -2,10 +2,12 @@
 // Created by jbuisine on 16/01/18.
 //
 
-#ifndef PHOTOALBUM_PARETOFRONT_H
-#define PHOTOALBUM_PARETOFRONT_H
+#ifndef PARETOFRONT_H
+#define PARETOFRONT_H
 
 #include <algorithm>
+#include "hyperVolume.h"
+
 /**
  * Class which returns pareto front from population
  */
@@ -21,13 +23,17 @@ public:
 
         unsigned nbObjective = _pop[0].objvec.size();
 
-        std::vector<moSolution> paFront;
+        std::vector<moSolution> paFront = std::vector<moSolution>();
         std::vector<unsigned> indexes;
 
         // check if solution dominate all others solutions
         for (int i = 0; i < _pop.size(); ++i) {
 
             for (int j = 0; j < _pop.size(); ++j) {
+
+                if((std::find(indexes.begin(), indexes.end(), j) != indexes.end())) {
+                    continue;
+                }
 
                 unsigned nbDominatedObjective = 0;
 
@@ -47,14 +53,12 @@ public:
                     }
                 }
 
-                // check if solution is non dominated or not
+                // check if solution is non dominated
                 if(nbDominatedObjective == nbObjective) {
                     indexes.push_back(i);
-                    goto nextSol;
+                    break;
                 }
             }
-            // TODO improve...
-            nextSol: std::cout;
         }
 
         // add non dominated solution found

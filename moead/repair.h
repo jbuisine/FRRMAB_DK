@@ -2,10 +2,8 @@
 // Created by jbuisine on 18/12/17.
 //
 
-#ifndef PHOTOALBUM_REPAIR_H
-#define PHOTOALBUM_REPAIR_H
-
-#endif //PHOTOALBUM_REPAIR_H
+#ifndef REPAIR_H
+#define REPAIR_H
 
 #include "subProblems.h"
 #include "operators/mutation.h"
@@ -86,3 +84,5 @@ public:
         return bestSolution;
     }
 };
+
+#endif

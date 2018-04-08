@@ -66,7 +66,7 @@ public:
 private:
 
     // number of elements
-    int n;
+    unsigned n;
 
     // first similitude matrix
     double ** BOne;
@@ -94,8 +94,7 @@ private:
         std::getline(file, line);
         n = stoi(line);
 
-        writeMatrixData(file, BOne);
-        writeMatrixData(file, BTwo);
+        writeMatrixData(file);
 
         file.close();
     };
@@ -105,43 +104,46 @@ private:
      * @param _file
      * @param m
      */
-    void writeMatrixData(std::ifstream& _file, double**& m){
+    void writeMatrixData(std::ifstream& _file){
 
         // init matrix first dimension size
-        m = new double*[n];
+        BOne = new double*[n];
+        BTwo = new double*[n];
 
         std::string line;
 
-        for(int i = 0; i < n; i++){
+        unsigned nbLines = n * n;
+
+        unsigned index = 0;
+
+        for(int i = 0; i < nbLines; i++){
+
+            unsigned j = i % n;
+
+            if(j == 0){
+
+                if(i != 0)
+                    index++;
+
+                BOne[index] = new double[n];
+                BTwo[index] = new double[n];
+            }
 
             // get next line data
             std::getline(_file, line);
-
-            // to avoid empty line
-            if(line.empty()){
-                i -= 1;
-                continue;
-            }
 
             stringstream ss(line);
 
             // set vectors data
             std::vector<string> strs;
-            std::vector<double> rowDist;
 
             std::string entry;
 
             while (ss >> entry)
                 strs.push_back(entry);
 
-            for (int j = 0; j < n; ++j) {
-                rowDist.push_back(stod(strs.at(j)));
-            }
-            m[i] = new double[n];
-
-            for (int j = 0; j < n; ++j) {
-                m[i][j] = rowDist.at(j);
-            }
+            BOne[index][j] = stod(strs.at(0));
+            BTwo[index][j] = stod(strs.at(1));
         }
     }
 };

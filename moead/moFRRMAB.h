@@ -1,6 +1,5 @@
-#ifndef __moAlgo__h
-#define __moAlgo__h
-
+#ifndef __FRRMAB__h
+#define __FRRMAB__h
 //#include "mpicxx.h"
 
 #include <map>
@@ -54,7 +53,7 @@ public:
      *
      * @param fileout
      */
-    virtual void run(char *fileout) {
+    virtual void run(const char *fileout) {
         //simpleHashMap sHM;
         unsigned nbEval = 0;
         time_t begintime = time(NULL);
@@ -68,10 +67,15 @@ public:
         // initialization of the population
         pop.resize(mu);
         for (unsigned i = 0; i < mu; i++) {
+
             initialization(pop[i]);
-            //repair(pop[i]);
+
+            // repair sol at init
+            // pop[i] = repair(pop[i], i, pbType);
+
             evaluation(pop[i]);
             pop[i].fitness(subProblems.scalarfunc(i, pop[i]));
+
             //sHM.insertSol(pop[i]);
             nbEval++;
             pop[i].ID(nbEval);
@@ -82,6 +86,9 @@ public:
             pop[i].save(file);
             // add this solution into pf pop
             pfPop.push_back(pop[i]);
+
+            // update min ref point to compute HV
+            updateMinRefPoint(pop[i]);
         }
 
         moSolution mutant;
@@ -92,7 +99,8 @@ public:
             // mutation of the direction i
 
             // get best next op for sub problem
-            int selectedOpIndex = getBestOp(i);
+
+            int selectedOpIndex = getBestOp();
             Operator& op = *operators.at(selectedOpIndex);
 
             mutant = pop[i];
@@ -117,6 +125,10 @@ public:
 
             //sHM.insertSol(mutant);
             evaluation(mutant);
+
+            // update min ref point to compute HV
+            updateMinRefPoint(mutant);
+
             nbEval++;
             mutant.ID(nbEval);
 
@@ -157,6 +169,7 @@ public:
             // update credit assignment values
             updateCreditAssignmentSubProblem();
 
+            mutant.op(selectedOpIndex);
             mutant.save(file);
 
             // next direction
@@ -164,8 +177,10 @@ public:
             if (i >= mu) {
                 i = 0;
                 HyperVolume hv;
-                std::cout << "POP : " << hv(pop) << std::endl;
-                std::cout << "PF : " << hv(pfPop) << std::endl;
+
+                //std::cout << "POP : " << hv(pop) << std::endl;
+                std::cout << "PF : " << hv(pfPop, minRefPoint) << std::endl;
+                std::cout << ((double)nbEval / (double)maxEval) * 100. << "%" << std::endl;
             };
         }
 
@@ -301,9 +316,9 @@ private:
      * @param _subProblem
      * @return
      */
-    unsigned getBestOp(unsigned _subProblem) {
+    unsigned getBestOp() {
 
-        int selectedOp;
+        unsigned selectedOp;
 
         // check if all operator are used at least once
         if (checkUnusedOp) {
