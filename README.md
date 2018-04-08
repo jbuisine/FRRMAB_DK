@@ -28,6 +28,8 @@ cmake
 
 For MOEA/D algorithm UBQP instances are used and generated following this available [generator](http://mocobench.sourceforge.net/index.php?n=Problem.MUBQP).
 
+You can use **resources/ubqp/mubqpGenerator.R** script with specific parameters to generate instances.
+
 # Licence
 
 [LGPLv3](http://www.cecill.info/index.en.html)
